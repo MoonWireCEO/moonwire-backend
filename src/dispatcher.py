@@ -6,7 +6,7 @@ import os
 import requests
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-FROM_EMAIL = "your-verified-sendgrid-email@example.com"  # Replace with your verified sender email
+FROM_EMAIL = "andrew@moonwire.app"  # Replace with your verified sender email
 
 def send_email(to_email, subject, content):
     url = "https://api.sendgrid.com/v3/mail/send"
@@ -31,7 +31,7 @@ def send_email(to_email, subject, content):
     
 def dispatch_alerts(cache):
     assets = ['BTC', 'ETH', 'SOL']  # or however many you are scanning
-    email_list = ["your-test-email@example.com"]  # <-- Replace with your real email address for now
+    email_list = ["lallos.andrew@gmail.com"]  # <-- Replace with your real email address for now
 
     for asset in assets:
         signals = cache.get_signal(f"{asset}_signals")
