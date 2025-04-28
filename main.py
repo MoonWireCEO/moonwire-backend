@@ -14,7 +14,7 @@ async def startup_event():
 
 @app.post("/ingest")
 async def ingest(background_tasks: BackgroundTasks):
-    background_tasks.add_task(ingest_market_data)
+    background_tasks.add_task(ingest_market_data, cache)
     return {"message": "Ingest started."}
 
 @app.post("/generate_signals")
