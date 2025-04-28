@@ -5,7 +5,7 @@ from src.ingest_discovery import ingest_market_data
 from src.signal_generator import generate_signals
 from src.dispatcher import dispatch_alerts
 
-def auto_loop(cache, interval=300):
+def auto_loop(cache, interval=600):
     """
     Background loop to run ingestion, signal generation, and dispatch every 'interval' seconds.
     Default interval = 300 seconds (5 minutes).
