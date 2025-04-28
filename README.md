@@ -1,13 +1,36 @@
-# MoonWire Signal Engine v2  
-**Internal Documentation**
+# MoonWire Signal Engine v3 (Discovery Edition + Auto Loop)
 
 ---
 
 ## Overview
 
-MoonWire Signal Engine v2 is the **real-time backend system** that ingests crypto market data, generates actionable trading signals, and dispatches alerts automatically.
+MoonWire is a real-time, autonomous crypto signal discovery engine.  
+It scans the live crypto markets, detects price and volume anomalies (sleepers), and dispatches actionable signals automatically.
 
-This system forms the **core technical brain** of MoonWire's MVP and early product launch.
+Built for real crypto-native traders who want speed, precision, and early mover advantage.
+
+---
+
+## Key Features
+
+- **Fully live backend** — hosted cloud server (Render) scanning 24/7.
+- **Real-time market discovery** — top 250 coins pulled live from CoinGecko.
+- **Sleeper detection engine** — automatic identification of unexpected price/volume spikes.
+- **Auto-run engine loop** — ingestion, analysis, and alerting every 10 minutes.
+- **No manual inputs needed** — MoonWire runs autonomously once deployed.
+- **Local cache memory (mock Redis)** — simplified and optimized for MVP.
+- **Mobile-controllable** — test, trigger, and monitor via HTTPBot or Postman apps.
+
+---
+
+## Technology Stack
+
+- **FastAPI** — blazing-fast Python API server.
+- **Uvicorn** — ASGI web server.
+- **Requests** — for real-time API pulls from CoinGecko.
+- **Python threading** — for background auto-run loops.
+- **Render.com** — cloud deployment for API + automation.
+- **GitHub** — version control and CI/CD for Render deployment.
 
 ---
 
@@ -15,60 +38,50 @@ This system forms the **core technical brain** of MoonWire's MVP and early produ
 
 | Module | Purpose |
 |:---|:---|
-| `main.py` | FastAPI app to manage endpoints and lifecycle |
-| `src/ingest.py` | Placeholder for future real data ingestion (Binance, CoinGecko) |
-| `src/fake_ingest.py` | Simulates BTC, ETH, SOL market data every 60 seconds |
-| `src/signal_generator.py` | Applies simple signal detection rules (price, volume, sentiment) |
-| `src/dispatcher.py` | Dispatches generated alerts (console logs now, SMS/Email later) |
-| `src/auto_trigger.py` | Automatically runs Ingest → Signal → Dispatch loop forever |
-| `src/cache.py` | Redis-backed fast cache for market data and signals |
-| `src/logger.py` | UTC timestamped event logging |
+| `main.py` | FastAPI app entrypoint + background thread launcher |
+| `src/ingest_discovery.py` | Pulls live top 250 crypto coins from CoinGecko |
+| `src/signal_generator.py` | Analyzes assets for price/volume anomalies |
+| `src/dispatcher.py` | Dispatches and logs sleeper signal alerts |
+| `src/auto_loop.py` | Autonomous runner: ingestion → analysis → dispatch loop every 10 min |
+| `src/cache.py` | Lightweight Python dictionary cache (no Redis server needed) |
+| `src/logger.py` | Timestamped event logging for monitoring activity |
 
 ---
 
 ## How It Works
 
-1. **Startup**  
-   - FastAPI server boots up.
-   - `auto_run()` starts in a background thread.
-
-2. **Ingest Loop (every 60 sec)**  
-   - Fake market data (price, volume, sentiment) for BTC, ETH, SOL is generated and saved into cache.
-
-3. **Signal Generation**  
-   - For each asset, engine checks if any triggers are met:
-     - Price spike (+3% 1hr move)
-     - Volume surge (+50% above average)
-     - Sentiment spike (+20% 6hr move)
-   - If so, it creates signal messages.
-
-4. **Dispatch**  
-   - Any signals found are logged as alerts.
-   - (Later: Will integrate with SMS, Email, Discord, etc.)
+1. **Server Start:** FastAPI boots → Auto-loop thread launches.
+2. **Every 10 minutes:**
+   - Fetch live top 250 crypto coins.
+   - Analyze each asset for sleepers.
+   - Dispatch any matching sleeper signals to logs (future: to Email/SMS).
+3. **Server Auto-Sleeps** (Render free plan) and Auto-Wakes as needed.
 
 ---
 
 ## Deployment Notes
 
-- **Redis** must be running (`localhost:6379` by default).
-- **FastAPI server** must be launched (`uvicorn main:app --reload`).
-- **Threaded auto-run** ensures ingestion and signal generation without manual triggers.
+- Hosted on **Render.com** (free/low-cost backend server).
+- Redis is **mocked by local memory cache** for simplicity during MVP stage.
+- Rate limiting protected by adjusting loop intervals (CoinGecko free API friendly).
 
 ---
 
-## Next Development Steps
+## Next Upgrades
 
-- Replace `fake_ingest.py` with real API ingestion.
-- Build real user notification systems (SMS, Email, Push).
-- Add user-specific signal thresholds (Pro/Elite tier logic).
-- Add error handling, retries, resilience features.
+- Integrate **real Email/SMS alerting** (SendGrid, Twilio).
+- Build **user-facing signal dashboard** (web frontend).
+- Add **dynamic sentiment analysis** (Twitter/X or LunarCrush).
+- Upgrade to managed Redis cloud when scaling past MVP.
+- Offer **tiered access** (Free/Pro/Elite) with different signal privileges.
 
 ---
 
-## Mission Critical
+## Mission
 
-This engine ensures MoonWire's **real-time intelligence promise**:
-> "Move faster than the crowd — on true market signals, not noise."
+> **Move faster than the crowd. Catch what others miss.  
+> MoonWire.  
+> Built for signal hunters.**
 
 ---
 
