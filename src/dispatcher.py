@@ -30,6 +30,9 @@ def send_email(to_email, subject, content):
     return response
     
 def dispatch_alerts(cache):
+    # === TEMP: Inject fake sleeper signal for email testing ===
+    cache.set_signal("TESTCOIN_signals", ["TESTCOIN surged +42% in last 1h"])
+    # ===========================================================
     assets = ['BTC', 'ETH', 'SOL']  # or however many you are scanning
     email_list = ["lallos.andrew@gmail.com"]  # <-- Replace with your real email address for now
 
