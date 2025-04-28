@@ -3,10 +3,19 @@ from src.ingest_discovery import ingest_market_data
 from src.signal_generator import generate_signals
 from src.dispatcher import dispatch_alerts
 from src.cache import SignalCache
+from threading import Thread
+from src.auto_loop import auto_loop
+
 
 app = FastAPI(title="MoonWire Signal Engine")
 
 cache = SignalCache()
+
+@app.on_event("startup")
+async def startup_event():
+    print("MoonWire Signal Engine is online.")
+    thread = Thread(target=auto_loop, args=(cache,), daemon=True)
+    thread.start()
 
 @app.on_event("startup")
 async def startup_event():
