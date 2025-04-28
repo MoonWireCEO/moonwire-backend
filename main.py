@@ -1,5 +1,5 @@
 from fastapi import FastAPI, BackgroundTasks
-from src.ingest import ingest_market_data
+from src.ingest_discovery import ingest_market_data
 from src.signal_generator import generate_signals
 from src.dispatcher import dispatch_alerts
 from src.cache import SignalCache
