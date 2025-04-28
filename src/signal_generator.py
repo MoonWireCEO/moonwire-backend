@@ -13,18 +13,20 @@ def generate_signals(cache):
     for asset in assets:
         data = cache.get_signal(asset)
         if not data:
-            continue
-        
+            continue  # Skip if no data
+
         signals = []
 
-        # Price movement detection
-        if abs(data.get('price_change_24h', 0)) >= 5.0:
-            signals.append(f"{asset}: Price moved {data['price_change_24h']:.2f}% in last 24h")
+        # Defensive check for price movement
+        if data.get('price_change_24h') is not None:
+            if abs(data['price_change_24h']) >= 5.0:
+                signals.append(f"{asset}: Price moved {data['price_change_24h']:.2f}% in last 24h")
 
-        # Volume surge detection
-        if data.get('volume_now', 0) > 1000000:  # Minimum volume filter
-            if data['volume_now'] > 2_000_000:  # 2x arbitrary "normal" baseline
-                signals.append(f"{asset}: Volume surge to {data['volume_now']:.0f}")
+        # Defensive check for volume
+        if data.get('volume_now') is not None:
+            if data['volume_now'] > 1000000:
+                if data['volume_now'] > 2_000_000:
+                    signals.append(f"{asset}: Volume surge to {data['volume_now']:.0f}")
 
         if signals:
             cache.set_signal(f"{asset}_signals", signals)
