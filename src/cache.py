@@ -1,16 +1,19 @@
-import redis
-import json
+# src/cache.py
 
 class SignalCache:
-    def __init__(self, host='localhost', port=6379, db=0):
-        self.client = redis.Redis(host=host, port=port, db=db)
+    def __init__(self):
+        # Use a simple Python dictionary instead of Redis for now
+        self.cache = {}
 
     def set_signal(self, key, value):
-        self.client.set(key, json.dumps(value))
+        # Set a value in the in-memory cache
+        self.cache[key] = value
 
     def get_signal(self, key):
-        value = self.client.get(key)
-        return json.loads(value) if value else None
+        # Retrieve a value from the cache
+        return self.cache.get(key, None)
 
     def delete_signal(self, key):
-        self.client.delete(key)
+        # Delete a value from the cache
+        if key in self.cache:
+            del self.cache[key]
