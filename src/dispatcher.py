@@ -34,7 +34,7 @@ def dispatch_alerts(cache):
     cache.set_signal("TESTCOIN_signals", ["TESTCOIN surged +42% in last 1h"])
     # ===========================================================
     assets = ['BTC', 'ETH', 'SOL']  # or however many you are scanning
-    email_list = ["lallos.andrew@gmail.com"]  # <-- Replace with your real email address for now
+    email_list = ["andrew@moonwire.app"]  # <-- Replace with your real email address for now
 
     for asset in assets:
         signals = cache.get_signal(f"{asset}_signals")
