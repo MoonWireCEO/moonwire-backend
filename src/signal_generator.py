@@ -7,8 +7,8 @@ def generate_signals(cache):
     '''
     print(f"[{datetime.utcnow()}] Starting sleeper signal scan...")
 
-    assets = cache.client.keys('*')  # All cached keys
-    assets = [a.decode('utf-8') for a in assets if not a.endswith(b'_signals')]
+    assets = list(cache.cache.keys())
+    assets = [a for a in assets if not a.endswith('_signals')]
 
     for asset in assets:
         data = cache.get_signal(asset)
