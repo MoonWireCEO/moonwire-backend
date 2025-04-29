@@ -33,7 +33,7 @@ def dispatch_alerts(cache):
     # === TEMP: Inject fake sleeper signal for email testing ===
     cache.set_signal("TESTCOIN_signals", ["TESTCOIN surged +42% in last 1h"])
     # ===========================================================
-    assets = ['BTC', 'ETH', 'SOL']  # or however many you are scanning
+    assets = ['BTC', 'ETH', 'SOL', 'TESTCOIN']  # or however many you are scanning
     email_list = ["andrew@moonwire.app"]  # <-- Replace with your real email address for now
     
     for asset in assets:
