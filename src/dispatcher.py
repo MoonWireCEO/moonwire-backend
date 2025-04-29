@@ -8,7 +8,10 @@ import requests
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 FROM_EMAIL = "andrew@moonwire.app"  # Replace with your verified sender email
 
+# ========== Send Email Function ==========
 def send_email(to_email, subject, content):
+    print(f"Preparing to send email to {to_email} with subject '{subject}'")
+
     url = "https://api.sendgrid.com/v3/mail/send"
     headers = {
         "Authorization": f"Bearer {SENDGRID_API_KEY}",
@@ -25,9 +28,15 @@ def send_email(to_email, subject, content):
             "value": content
         }]
     }
+
+    print("Sending POST request to SendGrid...")
     response = requests.post(url, headers=headers, json=data)
-    print(f"Email status: {response.status_code}")
+
+    print(f"SendGrid response status: {response.status_code}")
+    print(f"SendGrid response body: {response.text}")
+
     return response
+
     
 def dispatch_alerts(cache):
     # === TEMP: Inject fake sleeper signal for email testing ===
