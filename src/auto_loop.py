@@ -24,4 +24,5 @@ def auto_loop(cache, interval=600):
         except Exception as e:
             print(f"❌ Error in auto-loop: {str(e)}")
 
-        time.sleep(interval)
+    print(f"⏳ Sleeping for {interval} seconds...\n")
+    time.sleep(interval)
