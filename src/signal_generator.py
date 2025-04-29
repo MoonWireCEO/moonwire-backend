@@ -1,10 +1,10 @@
+# src/signal_generator.py
+
 from datetime import datetime
 from src.logger import log
+from src.signal_filter import is_signal_valid
 
 def generate_signals(cache):
-    '''
-    Generates sleeper trading signals across all cached assets.
-    '''
     print(f"[{datetime.utcnow()}] Starting sleeper signal scan...")
 
     stablecoins = ["USDC", "USDT", "DAI", "TUSD", "BUSD"]
@@ -14,27 +14,25 @@ def generate_signals(cache):
 
     for asset in assets:
         if asset in stablecoins:
-            continue  # Skip stablecoins
+            continue
 
         data = cache.get_signal(asset)
         if not data:
-            continue  # Skip if no data
+            continue
 
-        signals = []
+        price_change = data.get('price_change_24h')
+        volume = data.get('volume_now')
 
-        # Only scan coins with sufficient volume
-        if data.get('volume_now') is not None and data['volume_now'] > 10_000_000:
+        if price_change is None or volume is None:
+            continue
 
-            # Detect major price movement (now requiring 7% move)
-            if data.get('price_change_24h') is not None:
-                if abs(data['price_change_24h']) >= 7.0:
-                    signals.append(f"{asset}: Price moved {data['price_change_24h']:.2f}% in last 24h")
+        signal = {
+            'asset': asset,
+            'movement': price_change,
+            'volume': volume,
+            'time': datetime.utcnow()
+        }
 
-            # Detect extreme volume surges separately
-            if data['volume_now'] > 20_000_000:
-                signals.append(f"{asset}: Volume surge to {data['volume_now']:.0f}")
-
-        if signals:
-            cache.set_signal(f"{asset}_signals", signals)
-            log(f"[Signal Detected] {asset}: {signals}")
-
+        if is_signal_valid(signal):
+            cache.set_signal(f"{asset}_signals", [signal])
+            log(f"[Signal Detected] {asset}: {signal}")
