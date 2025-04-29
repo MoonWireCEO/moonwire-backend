@@ -1,12 +1,13 @@
-from src.logger import log
-
-# src/dispatcher.py (for now, near top)
+# src/dispatcher.py
 
 import os
 import requests
+from datetime import datetime
+from src.logger import log
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 FROM_EMAIL = "andrew@moonwire.app"  # Replace with your verified sender email
+
 
 # ========== Send Email Function ==========
 def send_email(to_email, subject, content):
@@ -37,19 +38,28 @@ def send_email(to_email, subject, content):
 
     return response
 
-    
+
+# ========== Dispatch Signals ==========
 def dispatch_alerts(cache):
-    # === TEMP: Inject fake sleeper signal for email testing ===
-    cache.set_signal("TESTCOIN_signals", ["TESTCOIN surged +42% in last 1h"])
-    # ===========================================================
-    assets = ['BTC', 'ETH', 'SOL', 'TESTCOIN']  # or however many you are scanning
-    email_list = ["andrew@moonwire.app"]  # <-- Replace with your real email address for now
-    
+    assets = ['BTC', 'ETH', 'SOL', 'TESTCOIN']  # Replace or load dynamically as needed
+    email_list = ["andrew@moonwire.app"]  # Replace with real email list later
+
     for asset in assets:
         signals = cache.get_signal(f"{asset}_signals")
         if signals:
             for signal in signals:
-                log(f"[ALERT] {signal}")
+                if isinstance(signal, dict):
+                    msg = (
+                        f"{signal['asset']} ALERT:\n"
+                        f"Price moved {signal['movement']:.2f}%\n"
+                        f"Volume: ${signal['volume']:,.0f}\n"
+                        f"Time: {signal['time'].strftime('%Y-%m-%d %H:%M:%S')} UTC"
+                    )
+                else:
+                    msg = str(signal)  # Fallback for legacy/test strings
+
+                log(f"[ALERT] {msg}")
                 for email in email_list:
-                    send_email(email, f"MoonWire Alert: {asset}", signal)
+                    send_email(email, f"MoonWire Alert: {asset}", msg)
+
             cache.delete_signal(f"{asset}_signals")
