@@ -6,7 +6,6 @@ from src.cache import SignalCache
 from threading import Thread
 from src.auto_loop import auto_loop
 
-
 app = FastAPI(title="MoonWire Signal Engine")
 
 cache = SignalCache()
@@ -17,9 +16,9 @@ async def startup_event():
     thread = Thread(target=auto_loop, args=(cache,), daemon=True)
     thread.start()
 
-@app.on_event("startup")
-async def startup_event():
-    print("MoonWire Signal Engine is online.")
+@app.get("/")
+def root():
+    return {"status": "MoonWire Signal Engine is online."}
 
 @app.post("/ingest")
 async def ingest(background_tasks: BackgroundTasks):
