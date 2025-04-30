@@ -5,15 +5,23 @@ from src.dispatcher import dispatch_alerts
 from src.cache import SignalCache
 from threading import Thread
 from src.auto_loop import auto_loop
+import traceback
 
 app = FastAPI(title="MoonWire Signal Engine")
-
 cache = SignalCache()
+
+def safe_auto_loop():
+    print(">>> auto_loop() thread starting...")
+    try:
+        auto_loop(cache)
+    except Exception as e:
+        print("!!! auto_loop() crashed with exception:")
+        traceback.print_exc()
 
 @app.on_event("startup")
 async def startup_event():
-    print("MoonWire Signal Engine is online.")
-    thread = Thread(target=auto_loop, args=(cache,), daemon=True)
+    print(">>> FastAPI startup triggered.")
+    thread = Thread(target=safe_auto_loop, daemon=True)
     thread.start()
 
 @app.get("/")
