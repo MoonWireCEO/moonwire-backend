@@ -5,6 +5,7 @@ from src.dispatcher import dispatch_alerts
 from src.cache import SignalCache
 from threading import Thread
 from src.auto_loop import auto_loop
+import asyncio
 import traceback
 
 app = FastAPI(title="MoonWire Signal Engine")
@@ -21,8 +22,13 @@ def safe_auto_loop():
 @app.on_event("startup")
 async def startup_event():
     print(">>> FastAPI startup triggered.")
-    thread = Thread(target=safe_auto_loop, daemon=True)
+    thread = Thread(target=safe_auto_loop, daemon=False)
     thread.start()
+    asyncio.create_task(_keep_alive())
+
+async def _keep_alive():
+    while True:
+        await asyncio.sleep(3600)  # sleep for an hour, then repeat
 
 @app.get("/")
 def root():
