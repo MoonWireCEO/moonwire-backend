@@ -13,17 +13,21 @@ def generate_signals(cache):
     assets = [a for a in assets if not a.endswith('_signals')]
 
     for asset in assets:
+        print(f"[{datetime.utcnow()}] Scanning asset: {asset}")
         if asset in stablecoins:
+            print(f"Skipping stablecoin: {asset}")
             continue
 
         data = cache.get_signal(asset)
         if not data:
+            print(f"No data for asset: {asset}")
             continue
 
         price_change = data.get('price_change_24h')
         volume = data.get('volume_now')
 
         if price_change is None or volume is None:
+            print(f"Incomplete data for {asset} — price or volume missing")
             continue
 
         signal = {
@@ -36,3 +40,5 @@ def generate_signals(cache):
         if is_signal_valid(signal):
             cache.set_signal(f"{asset}_signals", [signal])
             log(f"[Signal Detected] {asset}: {signal}")
+        else:
+            print(f"Filtered out: {asset} | {price_change:.2f}% | ${volume:,.0f}")
