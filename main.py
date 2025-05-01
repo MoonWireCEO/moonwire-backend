@@ -2,20 +2,19 @@ from fastapi import FastAPI, BackgroundTasks
 from src.ingest_discovery import ingest_market_data
 from src.signal_generator import generate_signals
 from src.dispatcher import dispatch_alerts
-from src.cache import SignalCache
+from src.cache_instance import cache
 from threading import Thread
 from src.auto_loop import auto_loop
 from datetime import datetime
 import traceback
 import time
-from src.cache_instance import cache
 
 app = FastAPI(title="MoonWire Signal Engine")
 
 def safe_auto_loop():
     print(">>> [Thread] auto_loop() starting...")
     try:
-        auto_loop(cache)
+        auto_loop()
     except Exception as e:
         print("!!! auto_loop() crashed:")
         traceback.print_exc()
@@ -40,17 +39,17 @@ def root():
 
 @app.post("/ingest")
 async def ingest(background_tasks: BackgroundTasks):
-    background_tasks.add_task(ingest_market_data, cache)
+    background_tasks.add_task(ingest_market_data)
     return {"message": "Ingest started."}
 
 @app.post("/generate_signals")
 async def generate(background_tasks: BackgroundTasks):
-    background_tasks.add_task(generate_signals, cache)
+    background_tasks.add_task(generate_signals)
     return {"message": "Signal generation started."}
 
 @app.post("/dispatch_alerts")
 async def dispatch(background_tasks: BackgroundTasks):
-    background_tasks.add_task(dispatch_alerts, cache)
+    background_tasks.add_task(dispatch_alerts)
     return {"message": "Alert dispatch started."}
 
 @app.post("/test-alert")
@@ -62,5 +61,5 @@ async def test_alert(background_tasks: BackgroundTasks):
         'time': datetime.utcnow()
     }
     cache.set_signal("TEST_signals", [test_signal])
-    background_tasks.add_task(dispatch_alerts, cache)
+    background_tasks.add_task(dispatch_alerts)
     return {"message": "Test alert sent to dispatcher."}
