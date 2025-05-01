@@ -5,8 +5,8 @@ from src.dispatcher import dispatch_alerts
 from src.cache import SignalCache
 from threading import Thread
 from src.auto_loop import auto_loop
-import asyncio
 import traceback
+import time
 
 app = FastAPI(title="MoonWire Signal Engine")
 cache = SignalCache()
@@ -19,19 +19,19 @@ def safe_auto_loop():
         print("!!! auto_loop() crashed:")
         traceback.print_exc()
 
-async def _keep_alive_with_heartbeat():
+def hold_forever():
+    print(">>> [Main Thread] Blocking indefinitely to keep service alive.")
     while True:
-        print(">>> [Heartbeat] FastAPI server alive.")
-        await asyncio.sleep(300)  # Log every 5 minutes
+        print(">>> [Main Thread] Still holding...")  # optional: comment this out if too noisy
+        time.sleep(300)  # sleep 5 minutes, then repeat
 
 @app.on_event("startup")
 async def startup_event():
     print(">>> [Startup] FastAPI server starting...")
-    # Launch the background auto_loop
     thread = Thread(target=safe_auto_loop, daemon=False)
     thread.start()
-    # Launch async heartbeat task to keep event loop active
-    asyncio.create_task(_keep_alive_with_heartbeat())
+    hold_thread = Thread(target=hold_forever, daemon=False)
+    hold_thread.start()
 
 @app.get("/")
 def root():
