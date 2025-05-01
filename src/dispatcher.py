@@ -1,15 +1,12 @@
-# src/dispatcher.py
-
 import os
 import requests
 from datetime import datetime
 from src.logger import log
+from src.cache_instance import cache  # Shared cache instance
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-FROM_EMAIL = "andrew@moonwire.app"  # Replace with your verified sender email
+FROM_EMAIL = "andrew@moonwire.app"
 
-
-# ========== Send Email Function ==========
 def send_email(to_email, subject, content):
     print(f"Preparing to send email to {to_email} with subject '{subject}'")
 
@@ -38,10 +35,9 @@ def send_email(to_email, subject, content):
 
     return response
 
-
-def dispatch_alerts(cache):
+def dispatch_alerts():
     assets = ['BTC', 'ETH', 'SOL', 'TEST']
-    email_list = ["andrew@moonwire.app"]  # Your real test email
+    email_list = ["andrew@moonwire.app"]
 
     for asset in assets:
         signals = cache.get_signal(f"{asset}_signals")
@@ -70,5 +66,3 @@ def dispatch_alerts(cache):
                 print(f"SendGrid response body: {response.text}")
 
         cache.delete_signal(f"{asset}_signals")
-
-
