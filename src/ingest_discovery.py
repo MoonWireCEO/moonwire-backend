@@ -3,9 +3,16 @@
 import requests
 from datetime import datetime
 
+# Correct CoinPaprika asset IDs
+ASSET_MAP = {
+    'BTC': 'btc-bitcoin',
+    'ETH': 'eth-ethereum',
+    'SOL': 'sol-solana'
+}
+
 def fetch_from_coinpaprika(asset_id):
     try:
-        url = f"https://api.coinpaprika.com/v1/tickers/{asset_id.lower()}-usd"
+        url = f"https://api.coinpaprika.com/v1/tickers/{asset_id}"
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
             data = response.json()
@@ -17,9 +24,9 @@ def fetch_from_coinpaprika(asset_id):
         print(f"CoinPaprika failed for {asset_id}: {e}")
     return None
 
-def fetch_from_coingecko(asset_id):
+def fetch_from_coingecko(asset_slug):
     try:
-        url = f"https://api.coingecko.com/api/v3/coins/{asset_id.lower()}"
+        url = f"https://api.coingecko.com/api/v3/coins/{asset_slug.lower()}"
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
             data = response.json()
@@ -28,22 +35,20 @@ def fetch_from_coingecko(asset_id):
                 'volume_now': data['market_data']['total_volume']['usd']
             }
     except Exception as e:
-        print(f"CoinGecko failed for {asset_id}: {e}")
+        print(f"CoinGecko failed for {asset_slug}: {e}")
     return None
 
 def ingest_market_data(cache):
     print(f"[{datetime.utcnow()}] Ingesting market data...")
 
-    assets = ['bitcoin', 'ethereum', 'solana']  # Add more as needed
-
-    for asset in assets:
-        data = fetch_from_coinpaprika(asset)
+    for symbol, paprika_id in ASSET_MAP.items():
+        data = fetch_from_coinpaprika(paprika_id)
         if not data:
-            print(f"Falling back to CoinGecko for {asset}")
-            data = fetch_from_coingecko(asset)
+            print(f"Falling back to CoinGecko for {symbol}")
+            data = fetch_from_coingecko(symbol.lower())
 
         if data:
-            cache.set_signal(asset.upper(), data)
-            print(f"Cached data for {asset.upper()}: {data}")
+            cache.set_signal(symbol, data)
+            print(f"Cached data for {symbol}: {data}")
         else:
-            print(f"Failed to fetch data for {asset}")
+            print(f"Failed to fetch data for {symbol}")
