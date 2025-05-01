@@ -1,10 +1,9 @@
-# src/signal_generator.py
-
 from datetime import datetime
 from src.logger import log
 from src.signal_filter import is_signal_valid
+from src.cache_instance import cache  # Shared cache instance
 
-def generate_signals(cache):
+def generate_signals():
     print(f"[{datetime.utcnow()}] Starting sleeper signal scan...")
 
     stablecoins = ["USDC", "USDT", "DAI", "TUSD", "BUSD"]
