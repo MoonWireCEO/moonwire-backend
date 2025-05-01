@@ -5,22 +5,9 @@ from src.dispatcher import dispatch_alerts
 from src.cache import SignalCache
 from threading import Thread
 from src.auto_loop import auto_loop
+from datetime import datetime
 import traceback
 import time
-
-from datetime import datetime
-
-@app.post("/test-alert")
-async def test_alert(background_tasks: BackgroundTasks):
-    test_signal = {
-        'asset': 'TEST',
-        'movement': 12.5,
-        'volume': 50000000,
-        'time': datetime.utcnow()
-    }
-    cache.set_signal("TEST_signals", [test_signal])
-    background_tasks.add_task(dispatch_alerts, cache)
-    return {"message": "Test alert sent to dispatcher."}
 
 app = FastAPI(title="MoonWire Signal Engine")
 cache = SignalCache()
@@ -36,8 +23,8 @@ def safe_auto_loop():
 def hold_forever():
     print(">>> [Main Thread] Blocking indefinitely to keep service alive.")
     while True:
-        print(">>> [Main Thread] Still holding...")  # optional: comment this out if too noisy
-        time.sleep(300)  # sleep 5 minutes, then repeat
+        print(">>> [Main Thread] Still holding...")
+        time.sleep(300)
 
 @app.on_event("startup")
 async def startup_event():
@@ -65,3 +52,15 @@ async def generate(background_tasks: BackgroundTasks):
 async def dispatch(background_tasks: BackgroundTasks):
     background_tasks.add_task(dispatch_alerts, cache)
     return {"message": "Alert dispatch started."}
+
+@app.post("/test-alert")
+async def test_alert(background_tasks: BackgroundTasks):
+    test_signal = {
+        'asset': 'TEST',
+        'movement': 12.5,
+        'volume': 50000000,
+        'time': datetime.utcnow()
+    }
+    cache.set_signal("TEST_signals", [test_signal])
+    background_tasks.add_task(dispatch_alerts, cache)
+    return {"message": "Test alert sent to dispatcher."}
