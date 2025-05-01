@@ -8,6 +8,20 @@ from src.auto_loop import auto_loop
 import traceback
 import time
 
+from datetime import datetime
+
+@app.post("/test-alert")
+async def test_alert(background_tasks: BackgroundTasks):
+    test_signal = {
+        'asset': 'TEST',
+        'movement': 12.5,
+        'volume': 50000000,
+        'time': datetime.utcnow()
+    }
+    cache.set_signal("TEST_signals", [test_signal])
+    background_tasks.add_task(dispatch_alerts, cache)
+    return {"message": "Test alert sent to dispatcher."}
+
 app = FastAPI(title="MoonWire Signal Engine")
 cache = SignalCache()
 
