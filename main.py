@@ -63,3 +63,10 @@ async def test_alert(background_tasks: BackgroundTasks):
     cache.set_signal("TEST_signals", [test_signal])
     background_tasks.add_task(dispatch_alerts)
     return {"message": "Test alert sent to dispatcher."}
+    
+from src.sentiment_reddit import fetch_sentiment_scores
+
+@app.get("/test-sentiment")
+def test_sentiment():
+    sentiment = fetch_sentiment_scores()
+    return sentiment
