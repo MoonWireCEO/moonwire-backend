@@ -8,9 +8,9 @@ from src.auto_loop import auto_loop
 from datetime import datetime
 import traceback
 import time
+from src.cache_instance import cache
 
 app = FastAPI(title="MoonWire Signal Engine")
-cache = SignalCache()
 
 def safe_auto_loop():
     print(">>> [Thread] auto_loop() starting...")
