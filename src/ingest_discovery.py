@@ -1,38 +1,49 @@
+# src/ingest_discovery.py
+
 import requests
+from datetime import datetime
+
+def fetch_from_coinpaprika(asset_id):
+    try:
+        url = f"https://api.coinpaprika.com/v1/tickers/{asset_id.lower()}-usd"
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                'price_change_24h': data['quotes']['USD']['percent_change_24h'],
+                'volume_now': data['quotes']['USD']['volume_24h']
+            }
+    except Exception as e:
+        print(f"CoinPaprika failed for {asset_id}: {e}")
+    return None
+
+def fetch_from_coingecko(asset_id):
+    try:
+        url = f"https://api.coingecko.com/api/v3/coins/{asset_id.lower()}"
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                'price_change_24h': data['market_data']['price_change_percentage_24h'],
+                'volume_now': data['market_data']['total_volume']['usd']
+            }
+    except Exception as e:
+        print(f"CoinGecko failed for {asset_id}: {e}")
+    return None
 
 def ingest_market_data(cache):
-    print("🛰️ Ingesting market data...")
+    print(f"[{datetime.utcnow()}] Ingesting market data...")
 
-    url = "https://api.coingecko.com/api/v3/coins/markets"
-    params = {
-        "vs_currency": "usd",
-        "order": "market_cap_desc",
-        "per_page": 250,
-        "page": 1,
-        "sparkline": False
-    }
+    assets = ['bitcoin', 'ethereum', 'solana']  # Add more as needed
 
-    try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
+    for asset in assets:
+        data = fetch_from_coinpaprika(asset)
+        if not data:
+            print(f"Falling back to CoinGecko for {asset}")
+            data = fetch_from_coingecko(asset)
 
-        for asset in data:
-            symbol = asset["symbol"].upper()
-            cache.set_signal(symbol, {
-                "price_now": asset["current_price"],
-                "price_change_24h": asset["price_change_percentage_24h"],
-                "volume_now": asset["total_volume"],
-                "market_cap": asset["market_cap"]
-            })
-
-        print("✅ Market data ingested.")
-
-    except requests.exceptions.HTTPError as e:
-        if response.status_code == 429:
-            print("⚠️ CoinGecko rate limit hit (429). Skipping ingest this cycle.")
+        if data:
+            cache.set_signal(asset.upper(), data)
+            print(f"Cached data for {asset.upper()}: {data}")
         else:
-            print(f"❌ HTTP error during ingest: {str(e)}")
-
-    except Exception as e:
-        print(f"❌ General error during ingest: {str(e)}")
+            print(f"Failed to fetch data for {asset}")
