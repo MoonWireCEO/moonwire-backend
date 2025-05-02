@@ -5,7 +5,7 @@ from src.ingest_discovery import ingest_market_data
 from src.signal_generator import generate_signals
 from src.dispatcher import dispatch_alerts
 from src.cache_instance import cache
-from src.cache_sentiment import update_sentiment_cache
+from src.sentiment_blended import blend_sentiment_scores
 
 def auto_loop(interval=600):
     print("✅ MoonWire Auto-Loop Started...")
@@ -13,7 +13,7 @@ def auto_loop(interval=600):
     while True:
         try:
             print("💬 Updating sentiment...")
-            update_sentiment_cache()
+            blend_sentiment_scores()
 
             print("🔁 Running Ingest...")
             ingest_market_data(cache)
