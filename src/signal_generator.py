@@ -9,7 +9,7 @@ def generate_signals():
     stablecoins = ["USDC", "USDT", "DAI", "TUSD", "BUSD"]
 
     assets = list(cache.cache.keys())
-    assets = [a for a in assets if not a.endswith('_signals')]
+    assets = [a for a in assets if not a.endswith('_signals') and not a.endswith('_sentiment')]
 
     for asset in assets:
         print(f"[{datetime.utcnow()}] Scanning asset: {asset}")
