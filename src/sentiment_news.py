@@ -56,8 +56,3 @@ def fetch_news_sentiment_scores():
     return sentiment
 """
 
-# Save the file
-output_path = Path("/mnt/data/sentiment_news.py")
-output_path.write_text(news_sentiment_code)
-
-output_path.name
