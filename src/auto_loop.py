@@ -4,7 +4,7 @@ import time
 from src.ingest_discovery import ingest_market_data
 from src.signal_generator import generate_signals
 from src.dispatcher import dispatch_alerts
-from src.sentiment_cache import update_sentiment_cache
+from src.cache_sentiment import update_sentiment_cache
 
 def auto_loop(interval=600):
     print("✅ MoonWire Auto-Loop Started...")
