@@ -50,11 +50,15 @@ def dispatch_alerts():
         for signal in signals:
             if isinstance(signal, dict):
                 sentiment = cache.get_signal(f"{asset}_sentiment") or 0.0
+                price_score = signal['movement'] / 10  # Normalize movement scale
+                confidence = round((price_score + sentiment) / 2, 2)  # Simple average for now
+
                 msg = (
                     f"{signal['asset']} ALERT:\n"
                     f"Price moved {signal['movement']:.2f}%\n"
                     f"Volume: ${signal['volume']:,.0f}\n"
                     f"Sentiment Score: {sentiment:+.2f}\n"
+                    f"Confidence Score: {confidence:.2f}\n"
                     f"Time: {signal['time'].strftime('%Y-%m-%d %H:%M:%S')} UTC"
                 )
             else:
