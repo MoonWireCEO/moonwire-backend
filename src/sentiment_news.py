@@ -1,6 +1,4 @@
 from pathlib import Path
-
-news_sentiment_code =
 import requests
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from datetime import datetime
