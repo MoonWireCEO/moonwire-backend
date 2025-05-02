@@ -9,8 +9,12 @@ from datetime import datetime
 import traceback
 import time
 from src.sentiment_news import fetch_news_sentiment_scores
+from src import dashboard
+
 
 app = FastAPI(title="MoonWire Signal Engine")
+
+app.include_router(dashboard.router)
 
 def safe_auto_loop():
     print(">>> [Thread] auto_loop() starting...")
