@@ -8,6 +8,7 @@ from src.auto_loop import auto_loop
 from datetime import datetime
 import traceback
 import time
+from src.sentiment_news import fetch_news_sentiment_scores
 
 app = FastAPI(title="MoonWire Signal Engine")
 
@@ -70,3 +71,9 @@ from src.sentiment_reddit import fetch_sentiment_scores
 def test_sentiment():
     sentiment = fetch_sentiment_scores()
     return sentiment
+
+@app.get("/test-news-sentiment")
+def test_news_sentiment():
+    sentiment = fetch_news_sentiment_scores()
+    return sentiment
+
