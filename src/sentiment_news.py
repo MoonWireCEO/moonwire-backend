@@ -1,6 +1,6 @@
 from pathlib import Path
 
-news_sentiment_code = """
+news_sentiment_code =
 import requests
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from datetime import datetime
@@ -54,5 +54,5 @@ def fetch_news_sentiment_scores():
     sentiment = analyze_sentiment(posts)
     print(f"News sentiment scores: {sentiment}")
     return sentiment
-"""
+
 
