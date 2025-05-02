@@ -4,6 +4,7 @@ import time
 from src.ingest_discovery import ingest_market_data
 from src.signal_generator import generate_signals
 from src.dispatcher import dispatch_alerts
+from src.cache_instance import cache
 from src.cache_sentiment import update_sentiment_cache
 
 def auto_loop(interval=600):
@@ -15,7 +16,7 @@ def auto_loop(interval=600):
             update_sentiment_cache()
 
             print("🔁 Running Ingest...")
-            ingest_market_data()
+            ingest_market_data(cache)
 
             print("🧠 Running Signal Generation...")
             generate_signals()
