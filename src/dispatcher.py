@@ -1,8 +1,9 @@
+
 import os
 import requests
 from datetime import datetime
 from src.logger import log
-from src.cache_instance import cache  # Shared cache instance
+from src.cache_instance import cache
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 FROM_EMAIL = "andrew@moonwire.app"
@@ -12,7 +13,7 @@ def send_email(to_email, subject, content):
 
     url = "https://api.sendgrid.com/v3/mail/send"
     headers = {
-        "Authorization": f"Bearer {SENDGRID_API_KEY}",
+        "Authorization": f"Bearer " + SENDGRID_API_KEY,
         "Content-Type": "application/json"
     }
     data = {
@@ -27,13 +28,18 @@ def send_email(to_email, subject, content):
         }]
     }
 
-    print("Sending POST request to SendGrid...")
     response = requests.post(url, headers=headers, json=data)
-
     print(f"SendGrid response status: {response.status_code}")
     print(f"SendGrid response body: {response.text}")
-
     return response
+
+def label_confidence(score):
+    if score >= 0.75:
+        return "High Confidence"
+    elif score >= 0.4:
+        return "Medium Confidence"
+    else:
+        return "Low Confidence"
 
 def dispatch_alerts():
     assets = ['BTC', 'ETH', 'SOL', 'TEST']
@@ -45,30 +51,29 @@ def dispatch_alerts():
             print(f"[Dispatch] No signals found for {asset}")
             continue
 
-        print(f"[Dispatch] Found {len(signals)} signal(s) for {asset}")
-
         for signal in signals:
             if isinstance(signal, dict):
                 sentiment = cache.get_signal(f"{asset}_sentiment") or 0.0
-                price_score = signal['movement'] / 10  # Normalize movement scale
-                confidence = round((price_score + sentiment) / 2, 2)  # Simple average for now
+                price_score = signal['movement'] / 10
+                confidence = round((price_score + sentiment) / 2, 2)
+                rank = label_confidence(confidence)
 
                 msg = (
                     f"{signal['asset']} ALERT:\n"
                     f"Price moved {signal['movement']:.2f}%\n"
                     f"Volume: ${signal['volume']:,.0f}\n"
                     f"Sentiment Score: {sentiment:+.2f}\n"
-                    f"Confidence Score: {confidence:.2f}\n"
+                    f"Confidence Score: {confidence:.2f} ({rank})\n"
                     f"Time: {signal['time'].strftime('%Y-%m-%d %H:%M:%S')} UTC"
                 )
+
+                subject = f"MoonWire Alert: {asset} ({rank})"
             else:
                 msg = str(signal)
+                subject = f"MoonWire Alert: {asset}"
 
-            print(f"[ALERT] {msg}")
+            log(f"[ALERT] {msg}")
             for email in email_list:
-                print(f"Preparing to send email to {email}")
-                response = send_email(email, f"MoonWire Alert: {asset}", msg)
-                print(f"SendGrid response status: {response.status_code}")
-                print(f"SendGrid response body: {response.text}")
+                send_email(email, subject, msg)
 
         cache.delete_signal(f"{asset}_signals")
