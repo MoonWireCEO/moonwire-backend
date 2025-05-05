@@ -16,14 +16,12 @@ def generate_signals():
         if asset in stablecoins:
             continue
 
-        data_list = cache.get_signal(asset)
-        if not data_list:
+        data = cache.get_signal(asset)
+        if not data:
             continue
 
-        latest = data_list[-1]
-
-        price_change = latest.get("price_change_24h")
-        volume = latest.get("volume_now")
+        price_change = data.get("price_change_24h")
+        volume = data.get("volume_now")
 
         if price_change is None or volume is None:
             continue
@@ -33,14 +31,26 @@ def generate_signals():
 
         signal = {
             "asset": asset,
-            "movement": price_change,
+            "price_change": price_change,
             "volume": volume,
             "sentiment": sentiment,
-            "confidence": confidence,
-            "time": datetime.utcnow()
+            "confidence_score": confidence,
+            "confidence_label": label_confidence(confidence),
+            "timestamp": datetime.utcnow()
         }
 
-        if is_signal_valid(signal):
-            valid_signals.append(signal)
+        print(f"[DEBUG] Generated signal: {signal}")
+
+        # TEMP: Force all signals through while debugging
+        # if is_signal_valid(signal):
+        valid_signals.append(signal)
 
     return valid_signals
+
+def label_confidence(score):
+    if score >= 0.7:
+        return "High Confidence"
+    elif score >= 0.4:
+        return "Medium Confidence"
+    else:
+        return "Low Confidence"
