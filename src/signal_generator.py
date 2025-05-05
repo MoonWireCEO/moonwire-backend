@@ -1,8 +1,8 @@
 from datetime import datetime
 from src.signal_filter import is_signal_valid
-from src.dispatcher import dispatch_alerts
 from src.cache_instance import cache
 from src.sentiment_blended import blend_sentiment_scores
+from src.dispatcher import dispatch_alerts
 
 def generate_signals():
     print(f"[{datetime.utcnow()}] Running signal generation...")
@@ -17,8 +17,13 @@ def generate_signals():
         if asset in stablecoins:
             continue
 
-        data = cache.get_signal(asset)
-        if not data:
+        # Pull the latest signal — either a dict or last item from a list
+        raw_data = cache.get_signal(asset)
+        if not raw_data:
+            continue
+
+        data = raw_data[-1] if isinstance(raw_data, list) else raw_data
+        if not isinstance(data, dict):
             continue
 
         price_change = data.get("price_change_24h")
@@ -29,12 +34,11 @@ def generate_signals():
 
         sentiment = sentiment_scores.get(asset, 0.0)
         confidence_score = round(((price_change / 10) + sentiment) / 2, 2)
-        if confidence_score > 0.66:
-            confidence_label = "High Confidence"
-        elif confidence_score > 0.33:
-            confidence_label = "Medium Confidence"
-        else:
-            confidence_label = "Low Confidence"
+        confidence_label = (
+            "High Confidence" if confidence_score >= 0.6 else
+            "Medium Confidence" if confidence_score >= 0.3 else
+            "Low Confidence"
+        )
 
         signal = {
             "asset": asset,
