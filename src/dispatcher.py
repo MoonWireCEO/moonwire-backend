@@ -1,9 +1,9 @@
-
 import os
 import requests
 from datetime import datetime
 from src.logger import log
 from src.cache_instance import cache
+from src.signal_log import log_signal
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 FROM_EMAIL = "andrew@moonwire.app"
@@ -42,7 +42,7 @@ def label_confidence(score):
         return "Low Confidence"
 
 def dispatch_alerts():
-    assets = ['BTC', 'ETH', 'SOL', 'TEST']
+    assets = ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE', 'TEST']
     email_list = ["andrew@moonwire.app"]
 
     for asset in assets:
@@ -68,6 +68,16 @@ def dispatch_alerts():
                 )
 
                 subject = f"MoonWire Alert: {asset} ({rank})"
+
+                # Log the signal to file
+                log_signal(
+                    asset=asset,
+                    movement=signal['movement'],
+                    volume=signal['volume'],
+                    sentiment=sentiment,
+                    confidence=confidence,
+                    timestamp=signal['time']
+                )
             else:
                 msg = str(signal)
                 subject = f"MoonWire Alert: {asset}"
