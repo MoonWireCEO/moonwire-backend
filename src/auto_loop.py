@@ -5,24 +5,25 @@ from src.ingest_discovery import ingest_market_data
 from src.signal_generator import generate_signals
 from src.dispatcher import dispatch_alerts
 from src.cache_instance import cache
-from src.sentiment_blended import blend_sentiment_scores
 
 def auto_loop(interval=600):
     print("✅ MoonWire Auto-Loop Started...")
 
     while True:
         try:
-            print("💬 Updating sentiment...")
-            blend_sentiment_scores()
-
-            print("🔁 Running Ingest...")
+            print("💬 Ingesting market data...")
             ingest_market_data(cache)
 
-            print("🧠 Running Signal Generation...")
-            generate_signals()
+            print("🧠 Generating signals...")
+            signals = generate_signals()
 
-            print("📣 Running Dispatch...")
-            dispatch_alerts()
+            print("📣 Dispatching alerts...")
+            for signal in signals:
+                dispatch_alerts(
+                    asset=signal['asset'],
+                    signal=signal,
+                    cache=cache
+                )
 
             print(f"✅ Cycle complete. Sleeping for {interval} seconds...\n")
 
