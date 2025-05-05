@@ -16,10 +16,16 @@ def generate_signals():
         if asset in stablecoins:
             continue
 
-        # This must return a dict, not a list
         data = cache.get_signal(asset)
+
+        # If signal data is a list, take the most recent one
+        if isinstance(data, list):
+            if not data:
+                continue
+            data = data[-1]
+
         if not isinstance(data, dict):
-            print(f"[ERROR] Expected dict for signal data, got {type(data)} — asset: {asset}")
+            print(f"[ERROR] Unexpected signal format for {asset}: {type(data)}")
             continue
 
         price_change = data.get("price_change_24h")
@@ -43,7 +49,7 @@ def generate_signals():
 
         print(f"[DEBUG] Generated signal: {signal}")
 
-        # TEMP: Force all signals through while debugging
+        # TEMP: Allow all signals for now
         # if is_signal_valid(signal):
         valid_signals.append(signal)
 
