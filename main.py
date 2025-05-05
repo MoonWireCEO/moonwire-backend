@@ -106,3 +106,22 @@ async def startup_event():
 
     hold_thread = Thread(target=hold_forever, daemon=False)
     hold_thread.start()
+    
+@app.post("/test-log-signal")
+def test_log_signal():
+    from datetime import datetime
+    from src.dispatcher import dispatch_alerts
+    from src.cache_instance import cache
+
+    test_signal = {
+        'asset': 'TEST',
+        'price_change': 12.5,
+        'volume': 50000000,
+        'sentiment': 0.0,
+        'confidence_score': 0.85,
+        'confidence_label': 'High Confidence',
+        'timestamp': datetime.utcnow().isoformat()
+    }
+
+    dispatch_alerts(asset='TEST', signal=test_signal, cache=cache)
+    return {"message": "Test signal dispatched"}
