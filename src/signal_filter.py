@@ -9,7 +9,7 @@ def is_signal_valid(signal):
     asset = signal['asset']
     movement = signal['price_change']
     volume = signal['volume']
-    now = signal['time']
+    now = signal['timestamp']
 
     MIN_MOVEMENT = 7.0
     MIN_VOLUME = 10_000_000
