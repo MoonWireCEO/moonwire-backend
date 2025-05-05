@@ -19,11 +19,11 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
         "volume": signal["volume"],
         "sentiment": signal["sentiment"],
         "confidence_score": signal["confidence_score"],
-        "confidence_label": signal.get("confidence_label", ""),
+        "confidence_label": signal.get("confidence_label", "Unknown"),
         "timestamp": signal["timestamp"]
     }
     cache.set_signal(history_key, history_entry)
-    logger.info(f"[Signal Logged] {asset} history updated: {history_entry}")
+    logger.info(f"[History Write] Key: {history_key} -> {cache.get_signal(history_key)}")
 
     # Format and send email alert
     label = signal.get("confidence_label", "Unknown Confidence")
