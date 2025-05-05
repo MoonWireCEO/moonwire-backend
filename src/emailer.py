@@ -13,6 +13,9 @@ def send_email_alert(subject: str, body: str):
 
     if not all([sender_email, receiver_email, smtp_password]):
         raise EnvironmentError("Missing SendGrid environment variables.")
+        print(f"SENDER={sender_email}")
+        print(f"RECEIVER={receiver_email}")
+        print(f"API_key={stmp_password}")
 
     message = MIMEMultipart()
     message["From"] = sender_email
