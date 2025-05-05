@@ -1,33 +1,40 @@
-# src/dashboard.py
+import logging
+from src.cache import SignalCache
+from src.emailer import send_email_alert
 
-from fastapi import APIRouter
-from src.cache_instance import cache
+logger = logging.getLogger(__name__)
 
-router = APIRouter()
+def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
+    """
+    Dispatches alerts when a valid signal is detected.
 
-@router.get("/dashboard")
-def dashboard():
-    data = {}
+    Args:
+        asset (str): The asset symbol (e.g. BTC, ETH).
+        signal (dict): The signal data triggering the alert.
+        cache (SignalCache): Cache instance for storing state.
+    """
+    logger.info(f"[Dispatch] Alert triggered for {asset}: {signal}")
 
-    for key in cache.keys():
-        # Expecting keys like "BTC_signals", "BTC_history", "BTC_sentiment"
-        if "_" not in key:
-            continue
+    # Save signal to cache
+    cache.set_signal(f"{asset}_signals", signal)
 
-        asset, data_type = key.split("_", 1)
+    # Append to history
+    history_key = f"{asset}_history"
+    history = cache.get_signal(history_key)
+    history.append(signal)
+    cache.set_signal(history_key, history)
 
-        if asset not in data:
-            data[asset] = {
-                "sentiment": 0,
-                "signals": [],
-                "history": []
-            }
+    logger.info(f"[Signal Logged] {asset}: {signal}")
 
-        if data_type == "sentiment":
-            data[asset]["sentiment"] = cache.get_signal(key)
-        elif data_type == "signals":
-            data[asset]["signals"] = cache.get_signal(key)
-        elif data_type == "history":
-            data[asset]["history"] = cache.get_signal(key)
-
-    return data
+    # Format and send email alert
+    label = signal.get('confidence_label', 'Unknown Confidence')
+    subject = f"MoonWire Alert: {asset} ({label})"
+    body = (
+        f"TEST ALERT:\n\n"
+        f"Price moved {signal['price_change']}%\n"
+        f"Volume: ${signal['volume']:,}\n"
+        f"Sentiment Score: {signal['sentiment']:+.2f}\n"
+        f"Confidence Score: {signal['confidence_score']:.2f} ({label})\n"
+        f"Time: {signal['timestamp']} UTC\n"
+    )
+    send_email_alert(subject, body)
