@@ -1,19 +1,11 @@
-import logging
-from src.cache import SignalCache
-from src.emailer import send_email_alert
-
-logger = logging.getLogger(__name__)
-
 def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
     logger.info(f"[Dispatch] Alert triggered for {asset}: {signal}")
 
-    # Save signal to current slot
-    cache.set_signal(f"{asset}_signals", signal)
+    # Save to signal + history
+    cache.set_signal(asset, signal)
+    cache.set_history(asset, signal)
 
-    # Also append to historical log
-    cache.add_to_history(asset, signal)
-
-    # Prepare email
+    # Email
     label = signal.get("confidence_label", "Unknown Confidence")
     subject = f"MoonWire Alert: {asset} ({label})"
     body = (
@@ -24,6 +16,4 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
         f"Confidence Score: {signal['confidence_score']:.2f} ({label})\n"
         f"Time: {signal['timestamp']} UTC\n"
     )
-
     send_email_alert(subject, body)
-    logger.info(f"[Signal Logged] TEST: {signal}")
