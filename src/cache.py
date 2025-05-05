@@ -3,16 +3,15 @@ class SignalCache:
         self._store = {}
 
     def get_signal(self, key):
-        return self._store.get(f"{key}_signal", {})
+        return self._store.get(key, [])
 
     def set_signal(self, key, value):
-        self._store[f"{key}_signal"] = value
+        if key not in self._store:
+            self._store[key] = []
+        self._store[key].append(value)
 
-    def get_history(self, key):
-        return self._store.get(f"{key}_history", [])
-
-    def set_history(self, key, value):
-        self._store.setdefault(f"{key}_history", []).append(value)
+    def clear(self):
+        self._store.clear()
 
     def keys(self):
         return self._store.keys()
