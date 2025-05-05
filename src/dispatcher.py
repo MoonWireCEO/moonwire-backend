@@ -19,7 +19,8 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
     cache.set_signal(asset, signal)
 
     # Format and send email alert
-    subject = f"MoonWire Alert: {asset} ({signal['confidence_label']})"
+    label = signal.get('confidence_label', 'Unknown Confidence')
+    subject = f"MoonWire Alert: {asset} ({label})"
     body = (
         f"TEST ALERT:\n\n"
         f"Price moved {signal['price_change']}%\n"
