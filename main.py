@@ -10,6 +10,7 @@ import traceback
 import time
 from src.sentiment_news import fetch_news_sentiment_scores
 from src import dashboard
+from src import dispatcher
 
 
 app = FastAPI(title="MoonWire Signal Engine")
@@ -80,4 +81,7 @@ def test_sentiment():
 def test_news_sentiment():
     sentiment = fetch_news_sentiment_scores()
     return sentiment
+
+app.include_router(dispatcher.router)
+
 
