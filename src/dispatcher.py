@@ -12,10 +12,18 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
     # Save signal to cache
     cache.set_signal(asset, signal)
 
-    # Also save to history
+    # Also save to history (as a separate entry)
     history_key = f"{asset}_history"
-    cache.set_signal(history_key, signal)
-    logger.info(f"[Signal Logged] {asset} history updated: {signal}")
+    history_entry = {
+        "price_change": signal["price_change"],
+        "volume": signal["volume"],
+        "sentiment": signal["sentiment"],
+        "confidence_score": signal["confidence_score"],
+        "confidence_label": signal.get("confidence_label", ""),
+        "timestamp": signal["timestamp"]
+    }
+    cache.set_signal(history_key, history_entry)
+    logger.info(f"[Signal Logged] {asset} history updated: {history_entry}")
 
     # Format and send email alert
     label = signal.get("confidence_label", "Unknown Confidence")
