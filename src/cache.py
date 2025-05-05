@@ -10,6 +10,9 @@ class SignalCache:
 
     def clear(self):
         self._store.clear()
-        
-    def keys(self):
-        return self._store.keys()
+
+    def add_to_history(self, asset, signal):
+        key = f"{asset}_history"
+        history = self._store.get(key, [])
+        history.append(signal)
+        self._store[key] = history
