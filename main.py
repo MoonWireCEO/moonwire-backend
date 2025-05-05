@@ -65,7 +65,7 @@ async def test_alert(background_tasks: BackgroundTasks):
         'time': datetime.utcnow()
     }
     cache.set_signal("TEST_signals", [test_signal])
-    background_tasks.add_task(dispatch_alerts)
+    background_tasks.add_task(dispatch_alerts, "TEST", test_signal, cache)
     return {"message": "Test alert sent to dispatcher."}
 
 from src.sentiment_reddit import fetch_sentiment_scores
