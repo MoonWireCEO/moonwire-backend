@@ -1,3 +1,5 @@
+# src/dashboard.py
+
 from fastapi import APIRouter
 from src.cache_instance import cache
 from src.sentiment_blended import blend_sentiment_scores
@@ -9,8 +11,8 @@ def dashboard():
     sentiment_scores = blend_sentiment_scores()
     output = {}
 
-    for key in cache._store:
-        if key.endswith("_signals") or key.endswith("_sentiment"):
+    for key in cache.keys():
+        if key.endswith("_signals") or key.endswith("_sentiment") or key.endswith("_history"):
             continue
 
         asset = key
