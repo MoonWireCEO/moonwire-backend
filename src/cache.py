@@ -10,3 +10,6 @@ class SignalCache:
 
     def clear(self):
         self._store.clear()
+        
+    def keys(self):
+    return self._store.keys()
