@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from src.cache import SignalCache
 from src.emailer import send_email_alert
 
@@ -7,11 +8,6 @@ logger = logging.getLogger(__name__)
 def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
     """
     Dispatches alerts when a valid signal is detected.
-
-    Args:
-        asset (str): The asset symbol (e.g. BTC, ETH).
-        signal (dict): The signal data triggering the alert.
-        cache (SignalCache): Cache instance for storing state.
     """
     logger.info(f"[Dispatch] Alert triggered for {asset}: {signal}")
 
@@ -20,11 +16,16 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
 
     # Save to history
     history_key = f"{asset}_history"
-    history = cache.get_signal(history_key) or []
-    history.append(signal)
+    history = cache.get_signal(history_key)
+    if not isinstance(history, list):
+        history = []
+    history.append({
+        "timestamp": datetime.utcnow().isoformat(),
+        "signal": signal
+    })
     cache.set_signal(history_key, history)
 
-    # Format and send email alert
+    # Email Alert
     label = signal.get("confidence_label", "Unknown Confidence")
     subject = f"MoonWire Alert: {asset} ({label})"
     body = (
@@ -37,4 +38,4 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
     )
     send_email_alert(subject, body)
 
-    logger.info(f"[Signal Logged] {signal}")
+    logger.info(f"[Signal Logged] TEST: {signal}")
