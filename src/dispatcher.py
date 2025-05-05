@@ -17,6 +17,7 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
 
     # Save signal to cache
     cache.set_signal(asset, signal)
+    logger.info(f"[Signal Logged] {asset}: {signal}")
 
     # Format and send email alert
     label = signal.get('confidence_label', 'Unknown Confidence')
@@ -26,7 +27,7 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
         f"Price moved {signal['price_change']}%\n"
         f"Volume: ${signal['volume']:,}\n"
         f"Sentiment Score: {signal['sentiment']:+.2f}\n"
-        f"Confidence Score: {signal['confidence_score']:.2f} ({signal['confidence_label']})\n"
+        f"Confidence Score: {signal['confidence_score']:.2f} ({label})\n"
         f"Time: {signal['timestamp']} UTC\n"
     )
     send_email_alert(subject, body)
