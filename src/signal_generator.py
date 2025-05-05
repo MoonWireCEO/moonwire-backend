@@ -1,5 +1,6 @@
 from datetime import datetime
 from src.signal_filter import is_signal_valid
+from src.dispatcher import dispatch_alerts
 from src.cache_instance import cache
 from src.sentiment_blended import blend_sentiment_scores
 
@@ -17,15 +18,7 @@ def generate_signals():
             continue
 
         data = cache.get_signal(asset)
-
-        # If signal data is a list, take the most recent one
-        if isinstance(data, list):
-            if not data:
-                continue
-            data = data[-1]
-
-        if not isinstance(data, dict):
-            print(f"[ERROR] Unexpected signal format for {asset}: {type(data)}")
+        if not data:
             continue
 
         price_change = data.get("price_change_24h")
@@ -35,30 +28,26 @@ def generate_signals():
             continue
 
         sentiment = sentiment_scores.get(asset, 0.0)
-        confidence = round(((price_change / 10) + sentiment) / 2, 2)
+        confidence_score = round(((price_change / 10) + sentiment) / 2, 2)
+        if confidence_score > 0.66:
+            confidence_label = "High Confidence"
+        elif confidence_score > 0.33:
+            confidence_label = "Medium Confidence"
+        else:
+            confidence_label = "Low Confidence"
 
         signal = {
             "asset": asset,
             "price_change": price_change,
             "volume": volume,
             "sentiment": sentiment,
-            "confidence_score": confidence,
-            "confidence_label": label_confidence(confidence),
+            "confidence_score": confidence_score,
+            "confidence_label": confidence_label,
             "timestamp": datetime.utcnow()
         }
 
-        print(f"[DEBUG] Generated signal: {signal}")
+        if is_signal_valid(signal):
+            valid_signals.append(signal)
 
-        # TEMP: Allow all signals for now
-        # if is_signal_valid(signal):
-        valid_signals.append(signal)
-
-    return valid_signals
-
-def label_confidence(score):
-    if score >= 0.7:
-        return "High Confidence"
-    elif score >= 0.4:
-        return "Medium Confidence"
-    else:
-        return "Low Confidence"
+    for signal in valid_signals:
+        dispatch_alerts(signal["asset"], signal, cache)
