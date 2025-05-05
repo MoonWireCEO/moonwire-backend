@@ -16,7 +16,7 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
     logger.info(f"[Dispatch] Alert triggered for {asset}: {signal}")
 
     # Save signal to cache
-    cache.store_signal(asset, signal)
+    cache.set_signal(asset, signal)
 
     # Format and send email alert
     subject = f"MoonWire Alert: {asset} ({signal['confidence_label']})"
