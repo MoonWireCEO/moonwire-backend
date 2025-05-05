@@ -10,8 +10,12 @@ import traceback
 import time
 from src.sentiment_news import fetch_news_sentiment_scores
 from src import dashboard
+import logging
+
 
 app = FastAPI(title="MoonWire Signal Engine")
+
+logging.basicConfig(level=logging.INFO)
 
 app.include_router(dashboard.router)
 
