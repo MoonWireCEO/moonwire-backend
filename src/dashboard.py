@@ -5,18 +5,24 @@ router = APIRouter()
 
 @router.get("/dashboard")
 def get_dashboard():
-    assets = ["BTC", "ETH", "SOL", "ADA", "DOGE", "TEST"]
     response = {}
 
-    for asset in assets:
-        sentiment = cache.get_signal(f"{asset}_sentiment")
-        signal = cache.get_signal(asset)
-        history = cache._store.get("history", {}).get(asset, [])
+    for key in cache.keys():
+        if key.endswith("_signals") or key.endswith("_sentiment") or key.endswith("_history"):
+            base_asset = key.split("_")[0]
 
-        response[asset] = {
-            "sentiment": sentiment,
-            "signals": signal,
-            "history": history
-        }
+            if base_asset not in response:
+                response[base_asset] = {
+                    "sentiment": [],
+                    "signals": [],
+                    "history": []
+                }
+
+            if key.endswith("_sentiment"):
+                response[base_asset]["sentiment"].append(cache.get_signal(key))
+            elif key.endswith("_signals"):
+                response[base_asset]["signals"].append(cache.get_signal(key))
+            elif key.endswith("_history"):
+                response[base_asset]["history"] = cache.get_signal(key)
 
     return response
