@@ -1,89 +1,45 @@
-import os
-import requests
+# dispatcher.py
+
+from fastapi import APIRouter
 from datetime import datetime
-from src.logger import log
-from src.cache_instance import cache
-from src.signal_log import log_signal
+from src.cache import SignalCache
+from src.utils.logging import log_signal
 
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-FROM_EMAIL = "andrew@moonwire.app"
+router = APIRouter()
+cache = SignalCache()
 
-def send_email(to_email, subject, content):
-    print(f"Preparing to send email to {to_email} with subject '{subject}'")
+@router.get("/dispatch")
+async def dispatch_signals():
+    assets = ["BTC", "ETH", "SOL", "ADA", "DOGE", "TEST"]
+    dispatched = {}
 
-    url = "https://api.sendgrid.com/v3/mail/send"
-    headers = {
-        "Authorization": f"Bearer " + SENDGRID_API_KEY,
-        "Content-Type": "application/json"
+    for symbol in assets:
+        signals = cache.get_signals(symbol)
+        if signals:
+            dispatched[symbol] = signals
+            for signal in signals:
+                log_signal(signal)
+            print(f"[Dispatch] Dispatched {len(signals)} signals for {symbol}")
+        else:
+            print(f"[Dispatch] No signals found for {symbol}")
+
+    return {"dispatched": dispatched}
+
+
+@router.post("/test-alert")
+async def test_alert():
+    signal = {
+        "symbol": "TEST",
+        "confidence": 0.62,
+        "sentiment_score": 0.0,
+        "price_change": 12.5,
+        "volume": 50000000,
+        "timestamp": datetime.utcnow().isoformat(),
+        "notes": "Manual test alert"
     }
-    data = {
-        "personalizations": [{
-            "to": [{"email": to_email}],
-            "subject": subject
-        }],
-        "from": {"email": FROM_EMAIL},
-        "content": [{
-            "type": "text/plain",
-            "value": content
-        }]
-    }
 
-    response = requests.post(url, headers=headers, json=data)
-    print(f"SendGrid response status: {response.status_code}")
-    print(f"SendGrid response body: {response.text}")
-    return response
+    log_signal(signal)
+    cache.store_signal("TEST", signal)
+    print("[Dispatcher] Test alert sent to dispatcher")
+    return {"message": "Test alert dispatched"}
 
-def label_confidence(score):
-    if score >= 0.75:
-        return "High Confidence"
-    elif score >= 0.4:
-        return "Medium Confidence"
-    else:
-        return "Low Confidence"
-
-def dispatch_alerts():
-    assets = ['BTC', 'ETH', 'SOL', 'ADA', 'DOGE', 'TEST']
-    email_list = ["andrew@moonwire.app"]
-
-    for asset in assets:
-        signals = cache.get_signal(f"{asset}_signals")
-        if not signals:
-            print(f"[Dispatch] No signals found for {asset}")
-            continue
-
-        for signal in signals:
-            if isinstance(signal, dict):
-                sentiment = cache.get_signal(f"{asset}_sentiment") or 0.0
-                price_score = signal['movement'] / 10
-                confidence = round((price_score + sentiment) / 2, 2)
-                rank = label_confidence(confidence)
-
-                msg = (
-                    f"{signal['asset']} ALERT:\n"
-                    f"Price moved {signal['movement']:.2f}%\n"
-                    f"Volume: ${signal['volume']:,.0f}\n"
-                    f"Sentiment Score: {sentiment:+.2f}\n"
-                    f"Confidence Score: {confidence:.2f} ({rank})\n"
-                    f"Time: {signal['time'].strftime('%Y-%m-%d %H:%M:%S')} UTC"
-                )
-
-                subject = f"MoonWire Alert: {asset} ({rank})"
-
-                # Log the signal to file
-                log_signal(
-                    asset=asset,
-                    movement=signal['movement'],
-                    volume=signal['volume'],
-                    sentiment=sentiment,
-                    confidence=confidence,
-                    timestamp=signal['time']
-                )
-            else:
-                msg = str(signal)
-                subject = f"MoonWire Alert: {asset}"
-
-            log(f"[ALERT] {msg}")
-            for email in email_list:
-                send_email(email, subject, msg)
-
-        cache.delete_signal(f"{asset}_signals")
