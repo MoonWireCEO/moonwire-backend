@@ -7,7 +7,7 @@ _recent_alerts = {}
 
 def is_signal_valid(signal):
     asset = signal['asset']
-    movement = signal['movement']
+    movement = signal['price_change']
     volume = signal['volume']
     now = signal['time']
 
