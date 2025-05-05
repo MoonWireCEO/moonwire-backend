@@ -1,43 +1,44 @@
 from datetime import datetime
-from src.logger import log
 from src.signal_filter import is_signal_valid
-from src.cache_instance import cache  # Shared cache instance
+from src.cache_instance import cache
+from src.sentiment_blended import blend_sentiment_scores
 
 def generate_signals():
-    print(f"[{datetime.utcnow()}] Starting sleeper signal scan...")
+    print(f"[{datetime.utcnow()}] Running signal generation...")
 
     stablecoins = ["USDC", "USDT", "DAI", "TUSD", "BUSD"]
+    assets = [k for k in cache.cache.keys() if not k.endswith('_signals') and not k.endswith('_sentiment')]
 
-    assets = list(cache.cache.keys())
-    assets = [a for a in assets if not a.endswith('_signals') and not a.endswith('_sentiment')]
+    sentiment_scores = blend_sentiment_scores()
+    valid_signals = []
 
     for asset in assets:
-        print(f"[{datetime.utcnow()}] Scanning asset: {asset}")
         if asset in stablecoins:
-            print(f"Skipping stablecoin: {asset}")
             continue
 
         data = cache.get_signal(asset)
         if not data:
-            print(f"No data for asset: {asset}")
             continue
 
-        price_change = data.get('price_change_24h')
-        volume = data.get('volume_now')
+        price_change = data.get("price_change_24h")
+        volume = data.get("volume_now")
 
         if price_change is None or volume is None:
-            print(f"Incomplete data for {asset} — price or volume missing")
             continue
 
+        sentiment = sentiment_scores.get(asset, 0.0)
+        confidence = round(((price_change / 10) + sentiment) / 2, 2)
+
         signal = {
-            'asset': asset,
-            'movement': price_change,
-            'volume': volume,
-            'time': datetime.utcnow()
+            "asset": asset,
+            "movement": price_change,
+            "volume": volume,
+            "sentiment": sentiment,
+            "confidence": confidence,
+            "time": datetime.utcnow()
         }
 
         if is_signal_valid(signal):
-            cache.set_signal(f"{asset}_signals", [signal])
-            log(f"[Signal Detected] {asset}: {signal}")
-        else:
-            print(f"Filtered out: {asset} | {price_change:.2f}% | ${volume:,.0f}")
+            valid_signals.append(signal)
+
+    return valid_signals
