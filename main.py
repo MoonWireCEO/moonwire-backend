@@ -1,29 +1,29 @@
 from fastapi import FastAPI, BackgroundTasks
+from threading import Thread
+from datetime import datetime
+import time
+import traceback
+import logging
+
+from src.cache_instance import cache
+from src.auto_loop import auto_loop
 from src.ingest_discovery import ingest_market_data
 from src.signal_generator import generate_signals
 from src.dispatcher import dispatch_alerts
-from src.cache_instance import cache
-from threading import Thread
-from src.auto_loop import auto_loop
-from datetime import datetime
-import traceback
-import time
 from src.sentiment_news import fetch_news_sentiment_scores
+from src.sentiment_reddit import fetch_sentiment_scores
 from src import dashboard
-import logging
-
 
 app = FastAPI(title="MoonWire Signal Engine")
+app.include_router(dashboard.router)
 
 logging.basicConfig(level=logging.INFO)
-
-app.include_router(dashboard.router)
 
 def safe_auto_loop():
     print(">>> [Thread] auto_loop() starting...")
     try:
         auto_loop()
-    except Exception as e:
+    except Exception:
         print("!!! auto_loop() crashed:")
         traceback.print_exc()
 
@@ -63,19 +63,16 @@ async def dispatch(background_tasks: BackgroundTasks):
 @app.post("/test-alert")
 async def test_alert(background_tasks: BackgroundTasks):
     test_signal = {
-        'asset': 'TEST',
-        'price_change': 12.5,
-        'volume': 50000000,
-        'sentiment': 0.0,
-        'confidence_score': 0.62,
-        'confidence_label': 'Medium Confidence',
-        'timestamp': datetime.utcnow()
+        "asset": "TEST",
+        "price_change": 12.5,
+        "volume": 50000000,
+        "sentiment": 0.2,
+        "confidence_score": 0.78,
+        "confidence_label": "High Confidence",
+        "timestamp": datetime.utcnow().isoformat()
     }
-    cache.set_signal("TEST_signals", [test_signal])
-    background_tasks.add_task(dispatch_alerts, asset='TEST', signal=test_signal, cache=cache)
+    background_tasks.add_task(dispatch_alerts, asset="TEST", signal=test_signal, cache=cache)
     return {"message": "Test alert sent to dispatcher."}
-
-from src.sentiment_reddit import fetch_sentiment_scores
 
 @app.get("/test-sentiment")
 def test_sentiment():
@@ -86,46 +83,3 @@ def test_sentiment():
 def test_news_sentiment():
     sentiment = fetch_news_sentiment_scores()
     return sentiment
-
-# REMOVE THIS LINE unless dispatcher.py defines a router
-# app.include_router(dispatcher.router)
-
-import os
-
-@app.on_event("startup")
-async def startup_event():
-    print(">>> [Startup] FastAPI server starting...")
-
-    # Log presence (not value) of SendGrid-related environment variables
-    sender = os.getenv("EMAIL_SENDER")
-    receiver = os.getenv("EMAIL_RECEIVER")
-    api_key = os.getenv("SENDGRID_API_KEY")
-
-    print(f">>> [Startup] EMAIL_SENDER set: {'Yes' if sender else 'No'}")
-    print(f">>> [Startup] EMAIL_RECEIVER set: {'Yes' if receiver else 'No'}")
-    print(f">>> [Startup] SENDGRID_API_KEY set: {'Yes' if api_key else 'No'}")
-
-    thread = Thread(target=safe_auto_loop, daemon=False)
-    thread.start()
-
-    hold_thread = Thread(target=hold_forever, daemon=False)
-    hold_thread.start()
-    
-@app.post("/test-log-signal")
-def test_log_signal():
-    from datetime import datetime
-    from src.dispatcher import dispatch_alerts
-    from src.cache_instance import cache
-
-    test_signal = {
-        'asset': 'TEST',
-        'price_change': 12.5,
-        'volume': 50000000,
-        'sentiment': 0.0,
-        'confidence_score': 0.85,
-        'confidence_label': 'High Confidence',
-        'timestamp': datetime.utcnow().isoformat()
-    }
-
-    dispatch_alerts(asset='TEST', signal=test_signal, cache=cache)
-    return {"message": "Test signal dispatched"}
