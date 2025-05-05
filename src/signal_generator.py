@@ -16,12 +16,14 @@ def generate_signals():
         if asset in stablecoins:
             continue
 
-        data = cache.get_signal(asset)
-        if not data:
+        data_list = cache.get_signal(asset)
+        if not data_list:
             continue
 
-        price_change = data.get("price_change_24h")
-        volume = data.get("volume_now")
+        latest = data_list[-1]
+
+        price_change = latest.get("price_change_24h")
+        volume = latest.get("volume_now")
 
         if price_change is None or volume is None:
             continue
