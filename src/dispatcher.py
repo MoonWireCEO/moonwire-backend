@@ -15,11 +15,17 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
     """
     logger.info(f"[Dispatch] Alert triggered for {asset}: {signal}")
 
-    # Save signal to history
-    cache.set_signal(f"{asset}_history", signal)
+    # Save signal to cache
+    cache.set_signal(asset, signal)
+
+    # Save to history
+    history_key = f"{asset}_history"
+    history = cache.get_signal(history_key) or []
+    history.append(signal)
+    cache.set_signal(history_key, history)
 
     # Format and send email alert
-    label = signal.get('confidence_label', 'Unknown Confidence')
+    label = signal.get("confidence_label", "Unknown Confidence")
     subject = f"MoonWire Alert: {asset} ({label})"
     body = (
         f"TEST ALERT:\n\n"
@@ -30,4 +36,5 @@ def dispatch_alerts(asset: str, signal: dict, cache: SignalCache):
         f"Time: {signal['timestamp']} UTC\n"
     )
     send_email_alert(subject, body)
-    logger.info(f"[Signal Logged] TEST: {signal}")
+
+    logger.info(f"[Signal Logged] {signal}")
