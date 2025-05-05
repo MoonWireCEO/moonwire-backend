@@ -1,28 +1,23 @@
 from fastapi import APIRouter
 from src.cache_instance import cache
+from src.sentiment_blended import blend_sentiment_scores
 
 router = APIRouter()
 
 @router.get("/dashboard")
-def get_dashboard():
-    response = {}
+def dashboard():
+    sentiment_scores = blend_sentiment_scores()
+    output = {}
 
-    for key in cache.keys():
-        if key.endswith("_signals") or key.endswith("_sentiment") or key.endswith("_history"):
-            base_asset = key.split("_")[0]
+    for key in cache._store:
+        if key.endswith("_signals") or key.endswith("_sentiment"):
+            continue
 
-            if base_asset not in response:
-                response[base_asset] = {
-                    "sentiment": [],
-                    "signals": [],
-                    "history": []
-                }
+        asset = key
+        output[asset] = {
+            "sentiment": sentiment_scores.get(asset, 0),
+            "signals": cache.get_signal(asset),
+            "history": cache.get_signal(f"{asset}_history") or []
+        }
 
-            if key.endswith("_sentiment"):
-                response[base_asset]["sentiment"].append(cache.get_signal(key))
-            elif key.endswith("_signals"):
-                response[base_asset]["signals"].append(cache.get_signal(key))
-            elif key.endswith("_history"):
-                response[base_asset]["history"] = cache.get_signal(key)
-
-    return response
+    return output
