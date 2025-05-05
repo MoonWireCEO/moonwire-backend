@@ -85,3 +85,24 @@ def test_news_sentiment():
 
 # REMOVE THIS LINE unless dispatcher.py defines a router
 # app.include_router(dispatcher.router)
+
+import os
+
+@app.on_event("startup")
+async def startup_event():
+    print(">>> [Startup] FastAPI server starting...")
+
+    # Log presence (not value) of SendGrid-related environment variables
+    sender = os.getenv("EMAIL_SENDER")
+    receiver = os.getenv("EMAIL_RECEIVER")
+    api_key = os.getenv("SENDGRID_API_KEY")
+
+    print(f">>> [Startup] EMAIL_SENDER set: {'Yes' if sender else 'No'}")
+    print(f">>> [Startup] EMAIL_RECEIVER set: {'Yes' if receiver else 'No'}")
+    print(f">>> [Startup] SENDGRID_API_KEY set: {'Yes' if api_key else 'No'}")
+
+    thread = Thread(target=safe_auto_loop, daemon=False)
+    thread.start()
+
+    hold_thread = Thread(target=hold_forever, daemon=False)
+    hold_thread.start()
