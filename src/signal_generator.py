@@ -16,8 +16,10 @@ def generate_signals():
         if asset in stablecoins:
             continue
 
+        # This must return a dict, not a list
         data = cache.get_signal(asset)
-        if not data:
+        if not isinstance(data, dict):
+            print(f"[ERROR] Expected dict for signal data, got {type(data)} — asset: {asset}")
             continue
 
         price_change = data.get("price_change_24h")
