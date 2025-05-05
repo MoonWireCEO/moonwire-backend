@@ -10,8 +10,6 @@ import traceback
 import time
 from src.sentiment_news import fetch_news_sentiment_scores
 from src import dashboard
-from src import dispatcher
-
 
 app = FastAPI(title="MoonWire Signal Engine")
 
@@ -69,7 +67,7 @@ async def test_alert(background_tasks: BackgroundTasks):
     cache.set_signal("TEST_signals", [test_signal])
     background_tasks.add_task(dispatch_alerts)
     return {"message": "Test alert sent to dispatcher."}
-    
+
 from src.sentiment_reddit import fetch_sentiment_scores
 
 @app.get("/test-sentiment")
@@ -82,6 +80,5 @@ def test_news_sentiment():
     sentiment = fetch_news_sentiment_scores()
     return sentiment
 
-app.include_router(dispatcher.router)
-
-
+# REMOVE THIS LINE unless dispatcher.py defines a router
+# app.include_router(dispatcher.router)
