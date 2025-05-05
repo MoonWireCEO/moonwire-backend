@@ -7,7 +7,7 @@ def generate_signals():
     print(f"[{datetime.utcnow()}] Running signal generation...")
 
     stablecoins = ["USDC", "USDT", "DAI", "TUSD", "BUSD"]
-    assets = [k for k in cache.cache.keys() if not k.endswith('_signals') and not k.endswith('_sentiment')]
+    assets = [k for k in cache.keys() if not k.endswith('_signals') and not k.endswith('_sentiment')]
 
     sentiment_scores = blend_sentiment_scores()
     valid_signals = []
