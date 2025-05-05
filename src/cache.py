@@ -3,7 +3,8 @@ class SignalCache:
         self._store = {}
 
     def get_signal(self, key):
-        return self._store.get(key, [])
+        values = self._store.get(key, [])
+        return values[-1] if values else None  # Return only the latest signal
 
     def set_signal(self, key, value):
         if key not in self._store:
