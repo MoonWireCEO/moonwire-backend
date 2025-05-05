@@ -21,8 +21,7 @@ def auto_loop(interval=600):
             for signal in signals:
                 dispatch_alerts(
                     asset=signal['asset'],
-                    signal=signal,
-                    cache=cache
+                    signal=signal
                 )
 
             print(f"✅ Cycle complete. Sleeping for {interval} seconds...\n")
