@@ -60,12 +60,15 @@ async def dispatch(background_tasks: BackgroundTasks):
 async def test_alert(background_tasks: BackgroundTasks):
     test_signal = {
         'asset': 'TEST',
-        'movement': 12.5,
+        'price_change': 12.5,
         'volume': 50000000,
-        'time': datetime.utcnow()
+        'sentiment': 0.0,
+        'confidence_score': 0.62,
+        'confidence_label': 'Medium Confidence',
+        'timestamp': datetime.utcnow()
     }
     cache.set_signal("TEST_signals", [test_signal])
-    background_tasks.add_task(dispatch_alerts, "TEST", test_signal, cache)
+    background_tasks.add_task(dispatch_alerts, asset='TEST', signal=test_signal, cache=cache)
     return {"message": "Test alert sent to dispatcher."}
 
 from src.sentiment_reddit import fetch_sentiment_scores
