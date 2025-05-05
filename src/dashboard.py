@@ -10,8 +10,8 @@ def get_dashboard():
 
     for asset in assets:
         sentiment = cache.get_signal(f"{asset}_sentiment")
-        signal = cache.get_signal(f"{asset}_signals")
-        history = cache.get_signal(f"{asset}_history")
+        signal = cache.get_signal(asset)
+        history = cache._store.get("history", {}).get(asset, [])
 
         response[asset] = {
             "sentiment": sentiment,
