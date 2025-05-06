@@ -1,4 +1,6 @@
-from fastapi import APIRouter
+# src/leaderboard.py
+
+from fastapi import APIRouter, Query
 from src.cache_instance import cache
 
 router = APIRouter()
@@ -18,18 +20,18 @@ def get_movement_label(change: float) -> str:
         return "Crashing"
 
 @router.get("/leaderboard")
-def leaderboard():
+def leaderboard(
+    sort_by: str = Query("price_change", enum=["price_change", "sentiment", "confidence_score", "timestamp"]),
+    descending: bool = Query(True)
+):
     output = []
-
-    for key in cache._store:
-        if key.endswith("_history"):
-            asset = key.replace("_history", "")
-            history = cache.get_signal(key)
-
+    for key in cache.keys():
+        if not key.endswith("_history"):
+            history = cache.get_signal(f"{key}_history")
             if isinstance(history, list) and history:
                 latest = history[-1]
                 output.append({
-                    "asset": asset,
+                    "asset": key,
                     "price_change": latest.get("price_change", 0),
                     "sentiment": latest.get("sentiment", 0),
                     "confidence_score": latest.get("confidence_score", 0),
@@ -38,7 +40,7 @@ def leaderboard():
                 })
             else:
                 output.append({
-                    "asset": asset,
+                    "asset": key,
                     "price_change": 0,
                     "sentiment": 0,
                     "confidence_score": 0,
@@ -46,4 +48,4 @@ def leaderboard():
                     "movement_label": "No Data"
                 })
 
-    return sorted(output, key=lambda x: x["price_change"], reverse=True)
+    return sorted(output, key=lambda x: x.get(sort_by, 0) or 0, reverse=descending)
