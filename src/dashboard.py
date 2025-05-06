@@ -24,3 +24,12 @@ def dashboard():
         }
 
     return output
+    
+@router.get("/history")
+def get_history():
+    output = {}
+    for key in cache._store:
+        if key.endswith("_history"):
+            asset = key.replace("_history", "")
+            output[asset] = cache.get_signal(key)
+    return output
