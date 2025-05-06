@@ -14,10 +14,12 @@ from src.sentiment_news import fetch_news_sentiment_scores
 from src.sentiment_reddit import fetch_sentiment_scores
 from src import dashboard
 from src.history import router as history_router
+from src.leaderboard import router as leaderboard_router
 
 
 app = FastAPI(title="MoonWire Signal Engine")
 app.include_router(dashboard.router)
+app.include_router(leaderboard_router)
 app.include_router(history_router)
 
 logging.basicConfig(level=logging.INFO)
