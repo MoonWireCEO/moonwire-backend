@@ -1,3 +1,5 @@
+# src/leaderboard.py
+
 from fastapi import APIRouter
 from src.cache_instance import cache
 
@@ -23,7 +25,7 @@ def leaderboard():
     for key in cache.keys():
         if not key.endswith("_history"):
             history = cache.get_signal(f"{key}_history")
-            if history:
+            if isinstance(history, list) and history:
                 latest = history[-1]
                 output.append({
                     "asset": key,
@@ -42,4 +44,5 @@ def leaderboard():
                     "timestamp": "",
                     "movement_label": "No Data"
                 })
+
     return sorted(output, key=lambda x: x["price_change"], reverse=True)
