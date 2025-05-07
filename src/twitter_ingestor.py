@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from src.cache_instance import cache
 from fastapi import APIRouter
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 def fetch_tweets_and_analyze(asset: str, limit: int = 5):
     analyzer = SentimentIntensityAnalyzer()
