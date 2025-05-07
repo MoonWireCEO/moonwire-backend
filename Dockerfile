@@ -1,24 +1,29 @@
-# Use an official Python image
 FROM python:3.11-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    curl \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Set working directory
+# Install required system packages
+RUN apt-get update && \
+    apt-get install -y build-essential libssl-dev libffi-dev curl ca-certificates && \
+    apt-get clean
+
+# Ensure certificate authority store is up to date
+RUN update-ca-certificates
+
+# Set work directory
 WORKDIR /app
 
-# Copy project files
-COPY . /app
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Python dependencies
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# Copy the project
+COPY . .
 
-# Expose port for FastAPI
+# Expose port
 EXPOSE 8000
 
-# Start FastAPI app
+# Start the app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
