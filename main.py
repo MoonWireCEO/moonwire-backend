@@ -16,13 +16,14 @@ from src.sentiment_reddit import fetch_sentiment_scores
 from src import dashboard
 from src.history import router as history_router
 from src.leaderboard import router as leaderboard_router
-from src.twitter_ingestor import fetch_tweets
+from src import twitter_ingestor
 
 
 app = FastAPI(title="MoonWire Signal Engine")
 app.include_router(dashboard.router)
 app.include_router(leaderboard_router)
 app.include_router(history_router)
+app.include_router(twitter_ingestor.router)
 
 logging.basicConfig(level=logging.INFO)
 
