@@ -4,6 +4,7 @@ import snscrape.modules.twitter as sntwitter
 from datetime import datetime, timedelta
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from src.cache_instance import cache
+from fastapi import APIRouter
 
 def fetch_tweets_and_analyze(asset: str, limit: int = 5):
     analyzer = SentimentIntensityAnalyzer()
@@ -33,3 +34,10 @@ def fetch_tweets_and_analyze(asset: str, limit: int = 5):
 
     except Exception as e:
         return {"error": str(e)}
+        
+router = APIRouter()
+
+@router.get("/test-twitter")
+def test_twitter():
+    # You can change this asset string to test others
+    return fetch_tweets("BTC")
