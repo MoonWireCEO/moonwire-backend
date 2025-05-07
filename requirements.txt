@@ -3,3 +3,4 @@ redis
 uvicorn
 requests
 vaderSentiment
+snscrape
