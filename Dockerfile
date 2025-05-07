@@ -1,19 +1,24 @@
-# Use the official Python slim image as base
+# Use an official Python image
 FROM python:3.11-slim
 
-# Install system dependencies, including CA certificates for SSL verification
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy all project files into the container
+# Copy project files
 COPY . /app
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-# Run the FastAPI application with uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
+# Expose port for FastAPI
+EXPOSE 8000
+
+# Start FastAPI app
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
