@@ -1,18 +1,35 @@
 # src/twitter_ingestor.py
 
-import subprocess
-import json
+import snscrape.modules.twitter as sntwitter
 from datetime import datetime, timedelta
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from src.cache_instance import cache
 
-def fetch_tweets(keyword, limit=20):
-    since = (datetime.utcnow() - timedelta(days=1)).strftime('%Y-%m-%d')
-    query = f'{keyword} since:{since}'
-    cmd = ['snscrape', '--jsonl', '--max-results', str(limit), 'twitter-search', query]
+def fetch_tweets_and_analyze(asset: str, limit: int = 5):
+    analyzer = SentimentIntensityAnalyzer()
+    yesterday = (datetime.utcnow() - timedelta(days=1)).date()
+    query = f"{asset} since:{yesterday}"
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        tweets = [json.loads(line) for line in result.stdout.splitlines()]
-        return [t['content'] for t in tweets]
+        tweets = []
+        for i, tweet in enumerate(sntwitter.TwitterSearchScraper(query).get_items()):
+            if i >= limit:
+                break
+            tweets.append(tweet.content)
+
+        if not tweets:
+            return {"message": "No tweets found."}
+
+        scores = [analyzer.polarity_scores(text)["compound"] for text in tweets]
+        average_score = round(sum(scores) / len(scores), 4)
+
+        cache.set_signal(f"{asset}_twitter_sentiment", {
+            "sentiment": average_score,
+            "source": "Twitter",
+            "timestamp": datetime.utcnow().isoformat()
+        })
+
+        return {"asset": asset, "average_sentiment": average_score, "tweets": tweets}
+
     except Exception as e:
-        print(f"Error fetching tweets: {e}")
-        return []
+        return {"error": str(e)}
