@@ -40,4 +40,4 @@ router = APIRouter()
 @router.get("/test-twitter")
 def test_twitter():
     # You can change this asset string to test others
-    return fetch_tweets("BTC")
+    return fetch_tweets_and_analyze("BTC")
