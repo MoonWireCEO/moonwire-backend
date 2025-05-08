@@ -17,13 +17,14 @@ from src import dashboard
 from src.history import router as history_router
 from src.leaderboard import router as leaderboard_router
 from src import twitter_ingestor
-
+from src.twitter_sentiment_api import router as twitter_sentiment_router
 
 app = FastAPI(title="MoonWire Signal Engine")
 app.include_router(dashboard.router)
 app.include_router(leaderboard_router)
 app.include_router(history_router)
 app.include_router(twitter_ingestor.router)
+app.include_router(twitter_sentiment_router)
 
 logging.basicConfig(level=logging.INFO)
 
