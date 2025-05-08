@@ -4,3 +4,4 @@ uvicorn
 requests
 vaderSentiment
 snscrape
+tweepy
