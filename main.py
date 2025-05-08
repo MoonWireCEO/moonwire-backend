@@ -92,16 +92,16 @@ def test_news_sentiment():
     sentiment = fetch_news_sentiment_scores()
     return sentiment
 
-@app.get("/test-twitter")
-def test_twitter():
-    tweets = fetch_tweets("BTC", limit=5)
+#@app.get("/test-twitter")
+#def test_twitter():
+#    tweets = fetch_tweets("BTC", limit=5)
 
-    if not tweets:
-        return {"message": "No tweets found or ingestion failed."}
+#    if not tweets:
+#        return {"message": "No tweets found or ingestion failed."}
+#
+#    for i, tweet in enumerate(tweets, 1):
+#        print(f"[Tweet {i}] {tweet[:200]}")  # Log first 200 characters
 
-    for i, tweet in enumerate(tweets, 1):
-        print(f"[Tweet {i}] {tweet[:200]}")  # Log first 200 characters
-
-    return {"message": f"Fetched {len(tweets)} tweets.", "example": tweets[0][:200]}
+#    return {"message": f"Fetched {len(tweets)} tweets.", "example": tweets[0][:200]}
     
     
