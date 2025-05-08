@@ -13,7 +13,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 router = APIRouter()
 
-def fetch_from_snscrape(query: str, limit: int = 5):
+def fetch_from_snscrape(query: str, limit: int = 10):
     tweets = []
     for i, tweet in enumerate(sntwitter.TwitterSearchScraper(query).get_items()):
         if i >= limit:
@@ -21,10 +21,14 @@ def fetch_from_snscrape(query: str, limit: int = 5):
         tweets.append(tweet.content)
     return tweets
 
-def fetch_from_twitter_api(query: str, limit: int = 5):
+def fetch_from_twitter_api(query: str, limit: int = 10):
     bearer = os.getenv("TWITTER_BEARER_TOKEN")
     client = tweepy.Client(bearer_token=bearer)
-    resp = client.search_recent_tweets(query=query, tweet_fields=["created_at", "lang"], max_results=limit)
+    resp = client.search_recent_tweets(
+        query=query,
+        tweet_fields=["created_at", "lang"],
+        max_results=max(limit, 10)  # Enforce Twitter API limit minimum
+    )
     return [t.text for t in resp.data or []]
 
 def analyze_and_cache(asset: str, tweets: list[str]):
@@ -39,7 +43,7 @@ def analyze_and_cache(asset: str, tweets: list[str]):
     })
     return {"asset": asset, "average_sentiment": avg, "tweets": tweets}
 
-def fetch_tweets_and_analyze(asset: str, method="snscrape", limit=5):
+def fetch_tweets_and_analyze(asset: str, method="snscrape", limit=10):
     yesterday = (datetime.utcnow() - timedelta(days=1)).date()
     query = f"{asset} since:{yesterday}" if method == "snscrape" else asset
 
@@ -59,6 +63,6 @@ def fetch_tweets_and_analyze(asset: str, method="snscrape", limit=5):
 def test_twitter(
     asset: str = Query("BTC"),
     method: str = Query("snscrape", enum=["snscrape", "api"]),
-    limit: int = Query(5)
+    limit: int = Query(10, ge=10, le=100)
 ):
     return fetch_tweets_and_analyze(asset, method=method, limit=limit)
