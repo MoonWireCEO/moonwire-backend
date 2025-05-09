@@ -72,7 +72,7 @@ def score_tweets(tweets: list[str]):
     scores = [analyzer.polarity_scores(t)["compound"] for t in tweets]
     return round(sum(scores) / len(scores), 4) if scores else 0.0
 
-def fetch_tweets_and_analyze(asset: str, method="snscrape", limit=10):
+def fetch_tweets_and_analyze(asset: str, method="api", limit=10):
     yesterday = (datetime.utcnow() - timedelta(days=1)).date()
     query = f"{asset} since:{yesterday}" if method == "snscrape" else asset
 
