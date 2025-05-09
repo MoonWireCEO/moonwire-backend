@@ -50,7 +50,6 @@ def fetch_from_twitter_api(query: str, limit: int = 10):
             max_results=max(limit, 10)
         )
 
-        # Debug log to capture raw API response
         logging.info({
             "event": "twitter_api_response_debug",
             "query": query,
@@ -101,17 +100,20 @@ def fetch_tweets_and_analyze(asset: str, method="api", limit=10):
         tweets = MOCK_TWEETS
 
     avg_sentiment = score_tweets(tweets)
+    timestamp = datetime.utcnow().isoformat()
 
     cache.set_signal(f"{asset}_twitter_sentiment", {
         "sentiment": avg_sentiment,
         "source": "Twitter",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": timestamp
     })
 
     return {
         "asset": asset,
         "average_sentiment": avg_sentiment,
-        "tweets": tweets
+        "timestamp": timestamp,
+        "source": "twitter",
+        "sample_tweets": tweets
     }
 
 @router.get("/test-twitter")
