@@ -1,11 +1,21 @@
 # src/main.py
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from src.twitter_router import router as twitter_router
 from src.healthcheck import router as healthcheck_router
 import uvicorn
 
 app = FastAPI()
+
+# CORS Middleware Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://moonwire-frontend.vercel.app"],  # Safer: limit to Vercel domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include routers
 app.include_router(healthcheck_router)
