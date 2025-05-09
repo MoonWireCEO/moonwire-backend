@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Query
 from src.twitter_ingestor import fetch_tweets_and_analyze
 
-twitter_router = APIRouter()
+router = APIRouter()
 
-@twitter_router.get("/sentiment/twitter")
+@router.get("/sentiment/twitter")
 def get_twitter_sentiment(
     asset: str = Query("BTC"),
     method: str = Query("snscrape", enum=["snscrape", "api"]),
