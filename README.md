@@ -23,7 +23,7 @@ Built for real crypto-native traders who want speed, precision, and early mover 
 
 ---
 
-## Technology Stack
+## Technology Stack 
 
 - **FastAPI** — blazing-fast Python API server.
 - **Uvicorn** — ASGI web server.
