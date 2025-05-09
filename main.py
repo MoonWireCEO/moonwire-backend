@@ -5,7 +5,6 @@ import time
 import traceback
 import logging
 
-
 from src.cache_instance import cache
 from src.auto_loop import auto_loop
 from src.ingest_discovery import ingest_market_data
@@ -17,14 +16,14 @@ from src import dashboard
 from src.history import router as history_router
 from src.leaderboard import router as leaderboard_router
 from src import twitter_ingestor
-from src.twitter_sentiment_api import router as twitter_sentiment_router
+from src.routers import twitter_router  # ✅ New router import
 
 app = FastAPI(title="MoonWire Signal Engine")
 app.include_router(dashboard.router)
 app.include_router(leaderboard_router)
 app.include_router(history_router)
 app.include_router(twitter_ingestor.router)
-app.include_router(twitter_sentiment_router)
+app.include_router(twitter_router.router)  # ✅ New router registration
 
 logging.basicConfig(level=logging.INFO)
 
@@ -92,17 +91,3 @@ def test_sentiment():
 def test_news_sentiment():
     sentiment = fetch_news_sentiment_scores()
     return sentiment
-
-#@app.get("/test-twitter")
-#def test_twitter():
-#    tweets = fetch_tweets("BTC", limit=5)
-
-#    if not tweets:
-#        return {"message": "No tweets found or ingestion failed."}
-#
-#    for i, tweet in enumerate(tweets, 1):
-#        print(f"[Tweet {i}] {tweet[:200]}")  # Log first 200 characters
-
-#    return {"message": f"Fetched {len(tweets)} tweets.", "example": tweets[0][:200]}
-    
-    
