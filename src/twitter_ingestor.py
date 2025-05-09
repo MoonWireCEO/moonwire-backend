@@ -74,7 +74,7 @@ def score_tweets(tweets: list[str]):
 
 def fetch_tweets_and_analyze(asset: str, method="api", limit=10):
     yesterday = (datetime.utcnow() - timedelta(days=1)).date()
-    query = f"{asset} since:{yesterday}" if method == "snscrape" else asset
+    query = f"{asset} since:{yesterday}" if method == "snscrape" else f"{asset} OR ${asset} OR #{asset}"
 
     tweets = []
     if method == "snscrape":
