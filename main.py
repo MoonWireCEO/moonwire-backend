@@ -11,7 +11,10 @@ app = FastAPI()
 # CORS Middleware Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://moonwire-frontend-clean-5lf0ebne1-andrews-projects-3d597529.vercel.app/"],  # Safer: limit to Vercel domain
+    allow_origins=[
+        "https://moonwire-frontend-clean.vercel.app",  # Primary Vercel domain
+        "https://moonwire-frontend-clean-5lf0ebne1-andrews-projects-3d597529.vercel.app"  # Deployment-specific subdomain
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
