@@ -13,7 +13,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://moonwire-frontend-clean.vercel.app",  # Primary Vercel domain
+        "https://moonwire-frontend-clean.vercel.app/"
         "https://moonwire-frontend-clean-5lf0ebne1-andrews-projects-3d597529.vercel.app"  # Deployment-specific subdomain
+        "https://moonwire-frontend-clean-5lf0ebne1-andrews-projects-3d597529.vercel.app/"
     ],
     allow_credentials=True,
     allow_methods=["*"],
