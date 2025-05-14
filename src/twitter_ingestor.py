@@ -9,10 +9,14 @@ from src.cache_instance import cache
 from fastapi import APIRouter, Query
 import ssl
 import tweepy
+import certifi
+import urllib3
 
-ssl._create_default_https_context = ssl._create_unverified_context
+# Create verified SSL context using certifi
+ssl_context = ssl.create_default_context(cafile=certifi.where())
+https = urllib3.PoolManager(ssl_context=ssl_context)
+
 router = APIRouter()
-
 logging.basicConfig(level=logging.INFO)
 
 MOCK_TWEETS = [
