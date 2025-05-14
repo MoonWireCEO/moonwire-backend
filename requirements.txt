@@ -5,4 +5,4 @@ requests
 vaderSentiment
 snscrape
 tweepy
-certifi
+certifi>=2024.2.2
