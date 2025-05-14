@@ -1,3 +1,5 @@
+# src/twitter_ingestor.py
+
 import snscrape.modules.twitter as sntwitter
 import os
 import logging
@@ -5,16 +7,15 @@ from datetime import datetime, timedelta
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from src.cache_instance import cache
 from fastapi import APIRouter, Query
+import ssl
 import tweepy
 import certifi
-import ssl
 
-# Apply certifi SSL context globally
+# Force SSL context to use certifi certificates
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 ssl._create_default_https_context = lambda: ssl_context
 
 router = APIRouter()
-
 logging.basicConfig(level=logging.INFO)
 
 MOCK_TWEETS = [
@@ -51,13 +52,16 @@ def fetch_from_twitter_api(query: str, limit: int = 10):
             tweet_fields=["created_at", "lang"],
             max_results=max(limit, 10)
         )
+
         logging.info({
             "event": "twitter_api_response_debug",
             "query": query,
             "raw_response": str(resp.data),
             "timestamp": datetime.utcnow().isoformat()
         })
+
         return [t.text for t in resp.data or []]
+
     except tweepy.TooManyRequests:
         logging.warning({
             "event": "twitter_fetch_error",
@@ -80,15 +84,22 @@ def score_tweets(tweets: list[str]):
     scores = [analyzer.polarity_scores(t)["compound"] for t in tweets]
     return round(sum(scores) / len(scores), 4) if scores else 0.0
 
-def fetch_tweets_and_analyze(asset: str, method="api", limit=10):
+def fetch_tweets_and_analyze(asset: str, method="snscrape", limit=10):
     yesterday = (datetime.utcnow() - timedelta(days=1)).date()
-    query = f"{asset} since:{yesterday}" if method == "snscrape" else f"{asset} OR ${asset} OR #{asset}"
+    snscrape_query = f"{asset} since:{yesterday}"
+    twitter_api_query = f"{asset} OR #{asset}"  # Removed cashtag to avoid 400 errors
 
     tweets = []
     if method == "snscrape":
-        tweets = fetch_from_snscrape(query, limit)
+        tweets = fetch_from_snscrape(snscrape_query, limit)
+        if not tweets:
+            logging.warning({
+                "event": "snscrape_failed_fallback_to_api",
+                "timestamp": datetime.utcnow().isoformat()
+            })
+            tweets = fetch_from_twitter_api(twitter_api_query, limit)
     elif method == "api":
-        tweets = fetch_from_twitter_api(query, limit)
+        tweets = fetch_from_twitter_api(twitter_api_query, limit)
 
     if not tweets:
         logging.warning({
