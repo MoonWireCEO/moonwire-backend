@@ -1,5 +1,3 @@
-# src/twitter_ingestor.py
-
 import snscrape.modules.twitter as sntwitter
 import os
 import logging
@@ -7,16 +5,16 @@ from datetime import datetime, timedelta
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from src.cache_instance import cache
 from fastapi import APIRouter, Query
-import ssl
 import tweepy
 import certifi
-import urllib3
+import ssl
 
-# Create verified SSL context using certifi
+# Apply certifi SSL context globally
 ssl_context = ssl.create_default_context(cafile=certifi.where())
-https = urllib3.PoolManager(ssl_context=ssl_context)
+ssl._create_default_https_context = lambda: ssl_context
 
 router = APIRouter()
+
 logging.basicConfig(level=logging.INFO)
 
 MOCK_TWEETS = [
@@ -53,16 +51,13 @@ def fetch_from_twitter_api(query: str, limit: int = 10):
             tweet_fields=["created_at", "lang"],
             max_results=max(limit, 10)
         )
-
         logging.info({
             "event": "twitter_api_response_debug",
             "query": query,
             "raw_response": str(resp.data),
             "timestamp": datetime.utcnow().isoformat()
         })
-
         return [t.text for t in resp.data or []]
-
     except tweepy.TooManyRequests:
         logging.warning({
             "event": "twitter_fetch_error",
