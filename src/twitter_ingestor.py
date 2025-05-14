@@ -1,23 +1,14 @@
-# src/twitter_ingestor.py
-
-import snscrape.modules.twitter as sntwitter
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from src.cache_instance import cache
 from fastapi import APIRouter, Query
-import ssl
-import tweepy
-import certifi
-
-# Force SSL context to use certifi certificates
-ssl_context = ssl.create_default_context(cafile=certifi.where())
-ssl._create_default_https_context = lambda: ssl_context
 
 router = APIRouter()
 logging.basicConfig(level=logging.INFO)
 
+# Always fallback to mock tweets
 MOCK_TWEETS = [
     "Bitcoin is doing great today!",
     "People are hyped about BTC again.",
@@ -26,89 +17,13 @@ MOCK_TWEETS = [
     "Could go either way, but BTC sentiment seems positive."
 ]
 
-def fetch_from_snscrape(query: str, limit: int = 10):
-    try:
-        tweets = []
-        for i, tweet in enumerate(sntwitter.TwitterSearchScraper(query).get_items()):
-            if i >= limit:
-                break
-            tweets.append(tweet.content)
-        return tweets
-    except Exception as e:
-        logging.error({
-            "event": "twitter_fetch_error",
-            "method": "snscrape",
-            "error": str(e),
-            "timestamp": datetime.utcnow().isoformat()
-        })
-        return []
-
-def fetch_from_twitter_api(query: str, limit: int = 10):
-    try:
-        bearer = os.getenv("TWITTER_BEARER_TOKEN")
-        client = tweepy.Client(bearer_token=bearer)
-        resp = client.search_recent_tweets(
-            query=query,
-            tweet_fields=["created_at", "lang"],
-            max_results=max(limit, 10)
-        )
-
-        logging.info({
-            "event": "twitter_api_response_debug",
-            "query": query,
-            "raw_response": str(resp.data),
-            "timestamp": datetime.utcnow().isoformat()
-        })
-
-        return [t.text for t in resp.data or []]
-
-    except tweepy.TooManyRequests:
-        logging.warning({
-            "event": "twitter_fetch_error",
-            "method": "api",
-            "error": "RateLimitExceeded",
-            "timestamp": datetime.utcnow().isoformat()
-        })
-        return []
-    except Exception as e:
-        logging.error({
-            "event": "twitter_fetch_error",
-            "method": "api",
-            "error": str(e),
-            "timestamp": datetime.utcnow().isoformat()
-        })
-        return []
-
 def score_tweets(tweets: list[str]):
     analyzer = SentimentIntensityAnalyzer()
     scores = [analyzer.polarity_scores(t)["compound"] for t in tweets]
     return round(sum(scores) / len(scores), 4) if scores else 0.0
 
-def fetch_tweets_and_analyze(asset: str, method="snscrape", limit=10):
-    yesterday = (datetime.utcnow() - timedelta(days=1)).date()
-    snscrape_query = f"{asset} since:{yesterday}"
-    twitter_api_query = f"{asset} OR #{asset}"  # Removed cashtag to avoid 400 errors
-
-    tweets = []
-    if method == "snscrape":
-        tweets = fetch_from_snscrape(snscrape_query, limit)
-        if not tweets:
-            logging.warning({
-                "event": "snscrape_failed_fallback_to_api",
-                "timestamp": datetime.utcnow().isoformat()
-            })
-            tweets = fetch_from_twitter_api(twitter_api_query, limit)
-    elif method == "api":
-        tweets = fetch_from_twitter_api(twitter_api_query, limit)
-
-    if not tweets:
-        logging.warning({
-            "event": "twitter_fallback_used",
-            "reason": "No tweets returned from either method",
-            "timestamp": datetime.utcnow().isoformat()
-        })
-        tweets = MOCK_TWEETS
-
+def fetch_tweets_and_analyze(asset: str, method="mock", limit=10):
+    tweets = MOCK_TWEETS
     avg_sentiment = score_tweets(tweets)
     timestamp = datetime.utcnow().isoformat()
 
@@ -126,10 +41,10 @@ def fetch_tweets_and_analyze(asset: str, method="snscrape", limit=10):
         "sample_tweets": tweets
     }
 
-@router.get("/test-twitter")
-def test_twitter(
+@router.get("/sentiment/twitter")
+def get_twitter_sentiment(
     asset: str = Query("BTC"),
-    method: str = Query("snscrape", enum=["snscrape", "api"]),
+    method: str = Query("mock", enum=["mock"]),
     limit: int = Query(10, ge=10, le=100)
 ):
     return fetch_tweets_and_analyze(asset, method=method, limit=limit)
