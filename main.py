@@ -13,9 +13,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://moonwire-frontend-clean.vercel.app",  # Primary Vercel domain
-        "https://moonwire-frontend-clean.vercel.app/"
-        "https://moonwire-frontend-clean-5lf0ebne1-andrews-projects-3d597529.vercel.app"  # Deployment-specific subdomain
-        "https://moonwire-frontend-clean-5lf0ebne1-andrews-projects-3d597529.vercel.app/"
+        "https://moonwire-frontend-clean-g6trxsvi8f-andrews-projects-3d597529.vercel.app"  # Deployment-specific subdomain
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -28,7 +26,7 @@ app.include_router(twitter_router)
 
 # Optional root route
 @app.get("/")
-def read_root():
+def root():
     return {"status": "ok", "message": "MoonWire Signal Engine API is live."}
 
 if __name__ == "__main__":
