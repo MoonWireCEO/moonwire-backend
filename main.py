@@ -9,12 +9,10 @@ import uvicorn
 app = FastAPI()
 
 # CORS Middleware Configuration
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://moonwire-frontend-clean.vercel.app",  # Primary Vercel domain
-        "https://moonwire-frontend-clean-g6trxsvi8f-andrews-projects-3d597529.vercel.app"  # Deployment-specific subdomain
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
